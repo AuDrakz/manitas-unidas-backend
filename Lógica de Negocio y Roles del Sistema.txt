@@ -1,0 +1,33 @@
+Lógica de Negocio y Roles del Sistema 
+
+Roles:
+
+- Adoptante: Puede ver mascotas y solicitar adopciones.
+
+- Staff: Puede aprobar o rechazar solicitudes de adopción y gestionar mascotas.
+
+- Veterinario: Puede actualizar fichas médicas. 
+
+Reglas de negocio:
+
+- Un adoptante no puede adoptar si su RUT aparece en ms-blacklist.
+
+- Una mascota no puede ser adoptada si en ms-pets su estado no es “Disponible”.
+
+- Una mascota no puede ser entregada si en ms-health tiene vacunas pendientes.
+
+- Solo el Staff puede aprobar o rechazar solicitudes de adopción.
+
+- Solo el Veterinario puede modificar fichas médicas, vacunas y tratamientos.
+
+- Cuando una adopción es aprobada, ms-adoptions debe cambiar el estado de la solicitud a “Aprobada” y pedir a ms-notifications que avise al usuario.
+
+- Cuando una mascota es adoptada, ms-pets debe cambiar su estado de “Disponible” a “Adoptado”.
+
+- Después de una adopción aprobada, ms-tracking debe crear un seguimiento post-adopción.
+
+- Un usuario no puede tener más de una solicitud de adopción en estado pendiente 
+
+
+
+
