@@ -1,5 +1,6 @@
 package manitasUnidas.fichaVet.service;
 
+import manitasUnidas.fichaVet.exception.ResourceNotFoundException;
 import manitasUnidas.fichaVet.model.Ficha;
 import manitasUnidas.fichaVet.repository.FichaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,14 +33,16 @@ public class FichaService {
      * Busca una ficha médica por su ID único.
      */
     public Ficha findFicha(Long id) {
-        return fichaRepo.findById(id).orElse(null);
+        return fichaRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("No se encontró la ficha médica con ID: " + id));
     }
 
     /**
      * ELIMINAR: Borra el registro médico por ID.
      */
     public void deleteFicha(Long id) {
-        fichaRepo.deleteById(id);
+        Ficha ficha = this.findFicha(id); // Si no existe, lanza la excepción aquí
+        fichaRepo.delete(ficha);
     }
 
     /**
@@ -47,20 +50,29 @@ public class FichaService {
      * de cada animal usando el método que creaste en el Repository.
      */
     public List<Ficha> findByMascota(Integer idMascota) {
-        return fichaRepo.findByIdMascota(idMascota);
+        List<Ficha> fichas = fichaRepo.findByIdMascota(idMascota);
+        if (fichas.isEmpty()) {
+            throw new ResourceNotFoundException("No se encontraron registros médicos para la mascota con ID: " + idMascota);
+        }
+        return fichas;
     }
 
     /**
      * BUSCAR POR RUT: Para saber qué fichas hizo un veterinario específico.
      */
     public List<Ficha> findByRutVeterinario(String rut) {
-        return fichaRepo.findByRut(rut);
+        List<Ficha> fichas = fichaRepo.findByRut(rut);
+        if (fichas.isEmpty()) {
+            throw new ResourceNotFoundException("No se encontraron fichas registradas por el veterinario RUT: " + rut);
+        }
+        return fichas;
     }
 
     /**
      * EDITAR: Actualiza los datos de la ficha.
      */
     public void editFicha(Ficha ficha) {
+        // Opcional: podrías verificar si ficha.getId() existe antes de guardar
         this.saveFicha(ficha);
     }
 }
