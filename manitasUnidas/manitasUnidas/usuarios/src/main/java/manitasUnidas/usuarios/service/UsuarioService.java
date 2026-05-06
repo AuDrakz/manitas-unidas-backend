@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import manitasUnidas.usuarios.exception.ResourceNotFoundException;
 import manitasUnidas.usuarios.model.Usuario;
 import manitasUnidas.usuarios.repository.UsuarioRepository;
 
@@ -32,7 +33,22 @@ public class UsuarioService {
     // metodo para buscar un usuario mediante el Id
     public Usuario buscarPorId(Long id) {
         return usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + id));
+    }
+
+    public Usuario actualizarUsuario(Long id, Usuario datosNuevos) {
+        // Buscamos por ID usando el método que ya tienes
+        Usuario usuarioExistente = buscarPorId(id);
+        
+        // Actualizamos los campos
+        usuarioExistente.setNombre(datosNuevos.getNombre());
+        usuarioExistente.setCorreo(datosNuevos.getCorreo());
+        usuarioExistente.setDireccion(datosNuevos.getDireccion());
+        usuarioExistente.setTelefono(datosNuevos.getTelefono());
+        usuarioExistente.setRol(datosNuevos.getRol());
+        
+        // Guardamos los cambios en el repository
+        return usuarioRepository.save(usuarioExistente);
     }
 
     // metodo para eliminar un usuario mediante su Id

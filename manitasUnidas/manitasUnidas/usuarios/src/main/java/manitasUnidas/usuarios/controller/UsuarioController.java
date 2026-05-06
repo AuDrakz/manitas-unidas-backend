@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,9 +43,17 @@ public class UsuarioController {
         return new ResponseEntity<>(usuarioService.registrarUsuario(usuario),HttpStatus.CREATED);
     }
 
-    // Eliminar un usuario
+@PutMapping("/{id}") // Corregido el cierre de llave }
+    public ResponseEntity<Usuario> actualizar(@PathVariable Long id, @RequestBody Usuario usuario) {
+        // Llamamos al servicio (que vamos a crear abajo) para que haga la magia
+        Usuario actualizado = usuarioService.actualizarUsuario(id, usuario);
+        return ResponseEntity.ok(actualizado);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+        // Primero buscamos si existe para que lance la excepción 404 si no está
+        usuarioService.buscarPorId(id); 
         usuarioService.eliminar(id);
         return ResponseEntity.noContent().build();
     }

@@ -11,7 +11,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Entity
-@Table(name = "usuarios")
+@Table(name = "mascotas")
 @Data
 public class Mascota {
     @Id
