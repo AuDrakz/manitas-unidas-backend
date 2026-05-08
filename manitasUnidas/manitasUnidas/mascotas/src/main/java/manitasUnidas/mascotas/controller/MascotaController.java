@@ -56,4 +56,6 @@ public class MascotaController {
         mascotaService.eliminar(id);
         return ResponseEntity.noContent().build();
     }
+
+    
 }

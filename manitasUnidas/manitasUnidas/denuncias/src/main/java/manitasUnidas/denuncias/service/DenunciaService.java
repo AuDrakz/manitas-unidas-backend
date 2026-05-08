@@ -1,5 +1,6 @@
 package manitasUnidas.denuncias.service;
 
+import manitasUnidas.denuncias.client.UsuarioClient;
 import manitasUnidas.denuncias.exception.ResourceNotFoundException;
 import manitasUnidas.denuncias.model.Denuncia;
 import manitasUnidas.denuncias.repository.DenunciaRepository;
@@ -15,11 +16,17 @@ public class DenunciaService {
     @Autowired
     private DenunciaRepository repository;
 
+    @Autowired
+    private UsuarioClient usuarioClient;
+
     public List<Denuncia> listarTodas() {
         return repository.findAll();
     }
 
     public Denuncia guardar(Denuncia denuncia) {
+        if (!usuarioClient.verificarExistencia(denuncia.getDenuncianteId())) {
+            throw new ResourceNotFoundException("El usuario: " + denuncia.getDenuncianteId() + " no existe");
+        }
         denuncia.setFechaReporte(LocalDate.now());
         denuncia.setEstado("PENDIENTE");
         return repository.save(denuncia);

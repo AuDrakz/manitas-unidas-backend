@@ -40,4 +40,7 @@ public class Mascota {
 
     // ID para mas adelante vincular con Usuario o Refugio
     private Long refugioId;
+
+    @NotNull(message = "ERROR: El ID del dueño es obligatorio")
+    private Long duenoId;
 }

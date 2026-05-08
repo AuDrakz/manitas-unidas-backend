@@ -43,7 +43,7 @@ public class UsuarioController {
         return new ResponseEntity<>(usuarioService.registrarUsuario(usuario),HttpStatus.CREATED);
     }
 
-@PutMapping("/{id}") // Corregido el cierre de llave }
+    @PutMapping("/{id}") // Corregido el cierre de llave }
     public ResponseEntity<Usuario> actualizar(@PathVariable Long id, @RequestBody Usuario usuario) {
         // Llamamos al servicio (que vamos a crear abajo) para que haga la magia
         Usuario actualizado = usuarioService.actualizarUsuario(id, usuario);
@@ -56,5 +56,10 @@ public class UsuarioController {
         usuarioService.buscarPorId(id); 
         usuarioService.eliminar(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/existe/{id}")
+    public boolean verificarExistencia(@PathVariable Long id) {
+        return usuarioService.existePorId(id);
     }
 }

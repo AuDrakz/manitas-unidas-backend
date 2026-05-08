@@ -19,7 +19,7 @@ public interface RefugioRepository extends JpaRepository<Refugio, Long> {
 
     //Busca refugios que tengan capacidad disponible.
     // Compara que la ocupación actual sea menor al límite enviado.
-    List<Refugio> findByOcupacionActual(Integer limite);
+    List<Refugio> findByCapacidadActual(Integer limite);
 
 
      //Busca refugios por nombre de forma exacta.   

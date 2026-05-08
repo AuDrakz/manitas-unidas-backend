@@ -15,67 +15,64 @@ public class RefugioController {
     @Autowired
     private RefugioService refugioServ;
 
-    // GUARDAR
-    @PostMapping("/crear")
-    public String guardar(@Valid @RequestBody Refugio refugio) {
-        refugioServ.guardarRefugio(refugio);
-        return "Refugio registrado exitosamente en el sistema.";
+    // CREAR: POST /api/refugios
+    @PostMapping
+    public Refugio guardar(@Valid @RequestBody Refugio refugio) {
+        return refugioServ.guardarRefugio(refugio); // Aquí ya retorna el JSON
     }
 
-    // LISTAR
-    @GetMapping("/listar")
+    // LISTAR TODOS: GET /api/refugios
+    @GetMapping
     public List<Refugio> listar() {
         return refugioServ.listarTodos();
     }
 
-    // BUSCAR POR ID
-    @GetMapping("/buscar/{id}")
+    // BUSCAR POR ID: GET /api/refugios/{id}
+    @GetMapping("/{id}")
     public Refugio buscarPorId(@PathVariable Long id) {
         return refugioServ.buscarPorId(id);
     }
 
-    // BUSCAR POR NOMBRE
-    @GetMapping("/buscar/nombre/{nombre}")
+    // BUSCAR POR NOMBRE: GET /api/refugios/nombre/{nombre}
+    @GetMapping("/nombre/{nombre}")
     public Refugio buscarPorNombre(@PathVariable String nombre) {
         return refugioServ.buscarPorNombre(nombre);
     }
 
-    // MÉTODO: BUSCAR POR RESPONSABLE
-    @GetMapping("/buscar/responsable/{responsable}")
-    public List<Refugio> buscarPorResponsable(@PathVariable String responsable) {
-        return refugioServ.buscarPorResponsable(responsable);
-    }
-
-    // BUSCAR POR COMUNA / DIRECCIÓN EXACTA
-    @GetMapping("/buscar/direccion/{direccion}")
-    public List<Refugio> buscarPorDireccion(@PathVariable String direccion) {
-        return refugioServ.buscarPorDireccion(direccion);
-    }
-
-    // BUSCAR REFUGIOS QUE NO ESTÉN AL MÁXIMO (DISPONIBILIDAD)
+    // DISPONIBILIDAD: GET /api/refugios/disponibles
     @GetMapping("/disponibles")
     public List<Refugio> buscarDisponibles() {
         return refugioServ.buscarConDisponibilidad();
     }
 
-    // INDICAR CANTIDAD DE CUPOS DISPONIBLES
+    // CUPOS: GET /api/refugios/cupos/{id}
     @GetMapping("/cupos/{id}")
     public String verCupos(@PathVariable Long id) {
         Integer cupos = refugioServ.obtenerCuposDisponibles(id);
-        return "El refugio seleccionado cuenta con " + cupos + " cupos disponibles.";
+        return "El refugio cuenta con " + cupos + " cupos disponibles.";
     }
 
-    // ELIMINAR
-    @DeleteMapping("/eliminar/{id}")
+    // ELIMINAR: DELETE /api/refugios/{id}
+    @DeleteMapping("/{id}")
     public String eliminar(@PathVariable Long id) {
         refugioServ.eliminarRefugio(id);
         return "El refugio ha sido eliminado correctamente.";
     }
 
-    // EDITAR / ACTUALIZAR
-    @PutMapping("/editar")
-    public String editar(@RequestBody Refugio refugio) {
-        refugioServ.actualizarRefugio(refugio);
-        return "Los datos del refugio han sido actualizados.";
+    // EDITAR: PUT /api/refugios/{id}
+    @PutMapping("/{id}")
+    public Refugio editar(@PathVariable Long id, @RequestBody Refugio refugio) {
+        refugio.setId(id);
+        return refugioServ.actualizarRefugio(refugio);
+    }
+
+    // COMUNICACIÓN ENTRE MICROSERVICIOS: GET /api/refugios/existe/{id}
+    @GetMapping("/existe/{id}")
+    public boolean verificarExistencia(@PathVariable Long id) {
+        try {
+            return refugioServ.buscarPorId(id) != null;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }
