@@ -2,7 +2,7 @@ package manitasUnidas.fichaVet.controller;
 
 import manitasUnidas.fichaVet.model.Ficha;
 import manitasUnidas.fichaVet.service.FichaService;
-import jakarta.validation.Valid;
+//import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,20 +16,20 @@ public class FichaController {
     private FichaService fichaServ;
 
     // 1. CREAR: Registrar una nueva consulta médica
-    @PostMapping("/crear")
-    public String crearFicha(@Valid @RequestBody Ficha ficha) {
+    @PostMapping
+    public String crearFicha( @RequestBody Ficha ficha) {
         fichaServ.saveFicha(ficha);
         return "La ficha médica ha sido guardada correctamente en el historial.";
     }
 
     // 2. TRAER TODAS: Ver todos los registros del albergue
-    @GetMapping("/traer")
+    @GetMapping
     public List<Ficha> traerFichas() {
         return fichaServ.getFichas();
     }
 
     // 3. TRAER POR ID: Ver el detalle de una ficha específica
-    @GetMapping("/traer/{id}")
+    @GetMapping("/{id}")
     public Ficha traerFicha(@PathVariable Long id) {
         return fichaServ.findFicha(id);
     }
@@ -47,16 +47,16 @@ public class FichaController {
     }
 
     // 6. BORRAR: Eliminar un registro por su ID
-    @DeleteMapping("/borrar/{id}")
+    @DeleteMapping("/{id}")
     public String eliminarFicha(@PathVariable Long id) {
         fichaServ.deleteFicha(id);
         return "Registro médico eliminado con éxito.";
     }
 
     // 7. EDITAR: Modificar datos de una ficha existente
-    @PutMapping("/editar")
+    @PutMapping("/{id}")
     public Ficha editarFicha(@RequestBody Ficha ficha) {
         fichaServ.editFicha(ficha);
-        return fichaServ.findFicha(ficha.getId());
+        return fichaServ.findFicha(ficha.getIdFicha());
     }
 }

@@ -5,12 +5,14 @@ import java.time.LocalDateTime;
 
 import org.hibernate.validator.constraints.Range;
 
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
@@ -23,7 +25,7 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Data
-@Table(name= "Ficha")
+@Table(name= "ficha")
 @AllArgsConstructor
 @NoArgsConstructor
 public class Ficha {
@@ -31,78 +33,93 @@ public class Ficha {
     //DATOS GENERALES 
 
     @Id
+    @Column(name = "id_ficha")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long idFicha;
     
     @PastOrPresent
     @NotNull(message = "Debe tener una fecha agendada")
+    @Column(name = "fecha_consulta")
     private LocalDateTime fechaConsulta;
 
 //========================  VETERINARIO =========================
     //IDENTIFICAR
     @NotBlank (message = "Es obligatorio ingresar un rut.")
+    @Size(max=20)
     private String rut;
     //NOMBRE 
     @NotBlank(message = "Debe tener un veterinario")
+    @Size(max = 255)
     private String veterinario;
 //=========================  MASCOTA    ==========================
     //DATOS DE LA MASCOTA
     @NotNull (message = "La mascota debe tener un id identificativo")
+    @Column(name = "id_mascota")
     private Integer idMascota;
 
     //MOTIVO 
     @NotBlank(message = "Debe indicar el motivo de la consulta")
     @Size(min = 10,max = 255)
+    @Column(name = "motivo_consulta")
     private String motivoConsulta;
 
     //PESO
-    @Positive(message = "El peso no puede ser negativo, Ingrese un dato valido (max 200KG)")
-    @Max(200)
+    @Positive(message = "El peso no puede ser negativo")
+    @DecimalMax(value = "200.0", message = "Máximo permitido 200KG")
     private Double peso;
-
     //TEMPERATURA
     @Range(min = 30,max = 45,message = "¡T° Imposible!. ingresa un valor valido dentro del rango (30-45°C)")
     private Double temperatura;
 
     //FRECUENCIA
     @Positive(message = "No puede tener frecuencia negativa")
+    @Column(name = "frecuencia_cardiaca")
     private Integer frecuenciaCardiaca;
 
     //DIAGNOSTICO
     @NotBlank(message = "Obligatoriamente debe indicar diagnostico, de lo contrario especificar que se evaluó")
-    @Size(min =  5,message = "Especifique y expresese de manera clara")
+    @Size(min = 5, max = 255,message = "Especifique y expresese de manera clara")
     private String diagnostico;
 
     //TRATAMIENTO
     @NotBlank(message = "Debe tener indicaciones veterinarias")
+    @Size(max = 255)
     private String tratamiento;
 
     //OBSERVACIONES
+    @NotBlank
     @Size(max = 1000,message = "Indicar las observaciones de manera clara es Obligatorio")
-    private String Observaciones;
+    private String observaciones;
 
     //=========================     HISTORIAL MASCOTA    ==========================
 
     //CASTRADO
     @NotNull(message = "Obligatorio indicar su estado")
-    private boolean castrado;
+    private Boolean castrado;
 
     //ENFERMEDADES/CONDICIONES/ALERGIAS
     @Size(max = 500,message = "Es Obligatorio indicar enfermedades y/o condiociones de salud de la mascota\nEnfermedades Cronicas\nAlergias\nCondiciones Medicas")
+    @Column(name = "enfermedades_condicion")
     private String enfermedadesCondicion;
 
     //TIPO DE SANGRE
-    @Pattern(regexp = "^(DEA [1-8](\\.[1-9])?|Desconocido)$", message = "Formato de sangre inválido")
+    @Pattern(
+    regexp = "^(DEA [1-8](\\.[1-9])?|Grupo [AB]|AB|Desconocido)$",
+    message = "Formato de sangre inválido"
+)
+    @Column(name = "tipo_sangre")
     private String tipoSangre;
 
     //VACUNAS
     @NotBlank(message = "El esquema de vacunación no puede estar vacío")
     @Size(min = 5, max = 1000, message = "Debe detallar las vacunas aplicadas")
+    @Column(name = "esquema_vacunacion")
     private String esquemaVacunacion;
 
     //FECHA DE DESPARACITACION
     @NotNull(message = "La fecha de desparasitación es obligatoria")
     @PastOrPresent(message = "La fecha no puede ser mayor al día de hoy")
+    @Column(name = "ultima_desparasitacion")
     private LocalDate ultimaDesparasitacion;
 
 
