@@ -57,5 +57,23 @@ public class MascotaController {
         return ResponseEntity.noContent().build();
     }
 
+    // metodo para verificar si la mascota existe (lo usará SolicitudClient)
+    @GetMapping("/existe/{id}")
+    public boolean verificarExistencia(@PathVariable Long id) {
+        try {
+            mascotaService.buscarPorId(id);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    // metodo para obtener solo el estado de la mascota
+    @GetMapping("/estado/{id}")
+    public ResponseEntity<String> obtenerEstado(@PathVariable Long id) {
+        Mascota m = mascotaService.buscarPorId(id);
+        return ResponseEntity.ok(m.getEstado()); 
+    }
+
     
 }

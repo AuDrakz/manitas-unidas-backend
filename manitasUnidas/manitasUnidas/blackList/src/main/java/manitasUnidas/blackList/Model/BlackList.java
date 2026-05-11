@@ -13,7 +13,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Entity
-@Table(name = "lista_negra")
+@Table(name = "blacklist")
 @Data
 public class BlackList {
 

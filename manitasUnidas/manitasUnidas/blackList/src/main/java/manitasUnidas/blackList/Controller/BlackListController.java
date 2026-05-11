@@ -12,7 +12,7 @@ import manitasUnidas.blackList.Service.BlackListService;
 
 
 @RestController
-@RequestMapping("/api/lista-negra")
+@RequestMapping("/api/blacklist")
 public class BlackListController {
 
     @Autowired
@@ -21,6 +21,11 @@ public class BlackListController {
     @GetMapping
     public List<BlackList> listar() {
         return service.obtenerTodos();
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<BlackList> buscarPorId(@PathVariable Long id) {
+        return ResponseEntity.ok(service.obtenerPorId(id));
     }
 
     // Endpoint clave para el servicio de Adopciones
@@ -43,5 +48,11 @@ public class BlackListController {
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         service.desbloquear(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<BlackList> actualizar(@PathVariable Long id, @RequestBody BlackList blackList) {
+        BlackList actualizado = service.actualizarBlackList(id, blackList);
+        return ResponseEntity.ok(actualizado);
     }
 }
