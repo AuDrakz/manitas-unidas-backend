@@ -3,8 +3,6 @@ package manitasUnidas.fichaVet.model;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import org.hibernate.validator.constraints.Range;
-
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -13,6 +11,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
@@ -68,7 +67,8 @@ public class Ficha {
     @DecimalMax(value = "200.0", message = "Máximo permitido 200KG")
     private Double peso;
     //TEMPERATURA
-    @Range(min = 30,max = 45,message = "¡T° Imposible!. ingresa un valor valido dentro del rango (30-45°C)")
+    @DecimalMin(value = "30.0")
+    @DecimalMax(value = "45.0")
     private Double temperatura;
 
     //FRECUENCIA
@@ -95,6 +95,7 @@ public class Ficha {
 
     //CASTRADO
     @NotNull(message = "Obligatorio indicar su estado")
+    @Column(columnDefinition = "TINYINT(1)")
     private Boolean castrado;
 
     //ENFERMEDADES/CONDICIONES/ALERGIAS
@@ -121,16 +122,6 @@ public class Ficha {
     @PastOrPresent(message = "La fecha no puede ser mayor al día de hoy")
     @Column(name = "ultima_desparasitacion")
     private LocalDate ultimaDesparasitacion;
-
-
-
-
-
-
-
-    
-
-
 
 
 }

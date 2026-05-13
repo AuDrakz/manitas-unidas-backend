@@ -68,11 +68,28 @@ public class FichaService {
         return fichas;
     }
 
-    /**
-     * EDITAR: Actualiza los datos de la ficha.
-     */
-    public void editFicha(Ficha ficha) {
-        // Opcional: podrías verificar si ficha.getId() existe antes de guardar
-        this.saveFicha(ficha);
+    public Ficha editFicha(Long id, Ficha fichaActualizada) {
+
+    Ficha fichaExistente = fichaRepo.findById(id)
+        .orElseThrow(() -> new RuntimeException("Ficha no encontrada"));
+
+        fichaExistente.setFechaConsulta(fichaActualizada.getFechaConsulta());
+        fichaExistente.setRut(fichaActualizada.getRut());
+        fichaExistente.setVeterinario(fichaActualizada.getVeterinario());
+        fichaExistente.setIdMascota(fichaActualizada.getIdMascota());
+        fichaExistente.setMotivoConsulta(fichaActualizada.getMotivoConsulta());
+        fichaExistente.setPeso(fichaActualizada.getPeso());
+        fichaExistente.setTemperatura(fichaActualizada.getTemperatura());
+        fichaExistente.setFrecuenciaCardiaca(fichaActualizada.getFrecuenciaCardiaca());
+        fichaExistente.setDiagnostico(fichaActualizada.getDiagnostico());
+        fichaExistente.setTratamiento(fichaActualizada.getTratamiento());
+        fichaExistente.setObservaciones(fichaActualizada.getObservaciones());
+        fichaExistente.setCastrado(fichaActualizada.getCastrado());
+        fichaExistente.setEnfermedadesCondicion(fichaActualizada.getEnfermedadesCondicion());
+        fichaExistente.setTipoSangre(fichaActualizada.getTipoSangre());
+        fichaExistente.setEsquemaVacunacion(fichaActualizada.getEsquemaVacunacion());
+        fichaExistente.setUltimaDesparasitacion(fichaActualizada.getUltimaDesparasitacion());
+
+        return fichaRepo.save(fichaExistente);
     }
 }
