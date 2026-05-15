@@ -49,6 +49,7 @@ public class SolicitudService {
 
         // --- PROCESO DE GUARDADO ---
         Solicitud solicitud = new Solicitud();
+        solicitud.setIdAdoptante(dto.getIdAdoptante());
         solicitud.setRutAdoptante(dto.getRutAdoptante());
         solicitud.setIdMascota(dto.getIdMascota());
         solicitud.setObservaciones(dto.getObservaciones());

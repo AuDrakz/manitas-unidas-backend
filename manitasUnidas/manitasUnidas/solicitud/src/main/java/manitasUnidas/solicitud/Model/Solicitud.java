@@ -12,6 +12,7 @@ public class Solicitud {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private Long idAdoptante;
     private String rutAdoptante; 
     private Long idMascota;      
     private LocalDate fechaSolicitud;
