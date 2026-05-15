@@ -5,12 +5,14 @@ import org.springframework.stereotype.Service;
 import manitasUnidas.solicitud.Model.Solicitud;
 import manitasUnidas.solicitud.Repository.SolicitudRepository;
 import manitasUnidas.solicitud.Client.BlackListClient;
+import manitasUnidas.solicitud.Client.MascotaClient; // Importamos el cliente de mascotas
 import manitasUnidas.solicitud.DTO.SolicitudRequestDTO;
-import manitasUnidas.solicitud.Exception.ResourceNotFoundException;
 import manitasUnidas.solicitud.Exception.SolicitudRechazadaException;
+import manitasUnidas.solicitud.Exception.ResourceNotFoundException; // Asegúrate de tener esta excepción
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class SolicitudService {
@@ -19,39 +21,74 @@ public class SolicitudService {
     private SolicitudRepository repository;
 
     @Autowired
-    private BlackListClient blackListClient; 
+    private BlackListClient blackListClient;
 
-    // MÉTODO PRINCIPAL: Usado por el Controller
+    @Autowired
+    private MascotaClient mascotaClient; // Inyectamos el cliente de mascotas
+
+    // 1. Crear con doble validación (Blacklist y Existencia de Mascota)
     public Solicitud crearSolicitud(SolicitudRequestDTO dto) {
-        // 1. Verificamos la lista negra (Feign llama al micro ms-blacklist)
-        boolean bloqueado = blackListClient.estaBloqueado(dto.getRutAdoptante());
         
+        // --- VALIDACIÓN 1: LISTA NEGRA ---
+        boolean bloqueado = blackListClient.estaBloqueado(dto.getRutAdoptante());
         if (bloqueado) {
-            // Usamos la excepción de RECHAZO (403 Forbidden)
-            throw new SolicitudRechazadaException("El adoptante con RUT " + dto.getRutAdoptante() + " tiene prohibido adoptar por estar en la lista negra.");
+            throw new SolicitudRechazadaException("El adoptante con RUT " + dto.getRutAdoptante() + " está en la lista negra.");
         }
 
-        // 2. Mapeo: Pasamos los datos del DTO a la Entidad
+        // --- VALIDACIÓN 2: EXISTENCIA DE MASCOTA ---
+        try {
+            // Llamamos al microservicio de mascotas
+            Object mascota = mascotaClient.obtenerMascota(dto.getIdMascota());
+            if (mascota == null) {
+                throw new ResourceNotFoundException("La mascota con ID " + dto.getIdMascota() + " no existe.");
+            }
+        } catch (Exception e) {
+            // Si el micro de mascotas responde error o no está disponible
+            throw new ResourceNotFoundException("No se puede proceder: La mascota con ID " + dto.getIdMascota() + " no fue encontrada.");
+        }
+
+        // --- PROCESO DE GUARDADO ---
         Solicitud solicitud = new Solicitud();
         solicitud.setRutAdoptante(dto.getRutAdoptante());
         solicitud.setIdMascota(dto.getIdMascota());
         solicitud.setObservaciones(dto.getObservaciones());
-        
-        // 3. Valores automáticos del sistema
         solicitud.setEstado("PENDIENTE");
         solicitud.setFechaSolicitud(LocalDate.now());
 
-        // 4. Guardamos en la base de datos de ms-solicitud
         return repository.save(solicitud);
     }
 
+    // 2. Obtener todas
     public List<Solicitud> obtenerTodas() {
         return repository.findAll();
     }
 
-    // Ejemplo de cuándo usar ResourceNotFoundException
-    public Solicitud obtenerPorId(Long id) {
-        return repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("No se encontró la solicitud con ID: " + id));
+    // 3. Buscar por ID
+    public Solicitud buscarPorId(Long id) {
+        Optional<Solicitud> op = repository.findById(id);
+        if (op.isPresent()) {
+            return op.get();
+        }
+        return null;
+    }
+
+    // 4. Cambiar Estado (Update)
+    public Solicitud cambiarEstado(Long id, String nuevoEstado) {
+        Optional<Solicitud> op = repository.findById(id);
+        if (op.isPresent()) {
+            Solicitud solicitud = op.get();
+            solicitud.setEstado(nuevoEstado);
+            return repository.save(solicitud);
+        }
+        return null;
+    }
+
+    // 5. Eliminar (Delete)
+    public boolean eliminarSolicitud(Long id) {
+        if (repository.existsById(id)) {
+            repository.deleteById(id);
+            return true;
+        }
+        return false;
     }
 }

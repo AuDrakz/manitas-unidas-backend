@@ -28,14 +28,14 @@ public class BlackListController {
         return ResponseEntity.ok(service.obtenerPorId(id));
     }
 
-    // Endpoint clave para el servicio de Adopciones
+    // En BlackListController.java
     @GetMapping("/verificar/{rut}")
-    public ResponseEntity<Boolean> estaBloqueado(@PathVariable String rut) {
+    public boolean estaBloqueado(@PathVariable String rut) {
         try {
-            service.buscarPorRut(rut);
-            return ResponseEntity.ok(true); // Si lo encuentra, está bloqueado
+            service.buscarPorRut(rut); // Si lo encuentra, lanza éxito
+            return true; 
         } catch (Exception e) {
-            return ResponseEntity.ok(false); // Si no, está limpio
+            return false; // Si no lo encuentra (excepción), no está bloqueado
         }
     }
 
