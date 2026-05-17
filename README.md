@@ -2,12 +2,12 @@
 
 Proyecto de microservicios para centro de adopción de mascotas - Desarrollo Fullstack I (DSY1103)
 
-## 🛠️ Arquitectura del Sistema e Infraestructura
+## Arquitectura del Sistema e Infraestructura
 El sistema está construido bajo una arquitectura distribuida y descentralizada utilizando Spring Cloud para solucionar problemas de escalabilidad en la gestión de adopciones:
 * **apiGateway (Puerto 8090):** Centralizador de accesos, manejo de puertos dinámicos y enrutamiento de peticiones a través de predicados de ruta.
 * **eureka (Puerto 8761):** Servidor de descubrimiento que registra dinámicamente las instancias activas de cada servicio.
 
-## 🚀 Microservicios Implementados
+##  Microservicios Implementados
 Cada componente opera de manera independiente con su propia persistencia en bases de datos relacionales MySQL, estructurado bajo el patrón de diseño CSR (Controller, Service, Repository):
 * **usuarios:** Gestión y registro de cuentas de usuarios, administradores y posibles adoptantes.
 * **mascotas:** Inventario y catálogo general de los animales rescatados disponibles en el sistema.
@@ -16,12 +16,12 @@ Cada componente opera de manera independiente con su propia persistencia en base
 * **blackList:** Servicio de seguridad perimetral encargado de registrar y sancionar a usuarios no aptos para adopción.
 * **solicitud:** Núcleo transaccional del backend que procesa y gestiona las postulaciones de adopción en el ecosistema.
 
-## 🔗 Integración y Reglas de Negocio (Feign Clients)
+## Integración y Reglas de Negocio (Feign Clients)
 La transferencia coherente de datos y las reglas críticas del negocio no funcionan de forma aislada, sino mediante comunicación síncrona usando OpenFeign:
 * `ms-solicitud` inyecta clientes declarativos para conectar con los demás servicios en cascada por código.
 * Al procesar una adopción, el sistema valida obligatoriamente que el usuario postulante **exista** en `usuarios`, que **no esté bloqueado** en `blackList`, y que la **mascota** requerida exista en el inventario y esté asociada a un `refugios` válido.
 
-## 📦 Instrucciones para Levantamiento del Proyecto
+## Instrucciones para Levantamiento del Proyecto
 Para validar el funcionamiento real del sistema, se deben levantar los servicios en las consolas locales siguiendo este orden estricto:
 1. **eureka** (Servidor de descubrimiento activo)
 2. **apiGateway** (Enrutador perimetral operativo)
