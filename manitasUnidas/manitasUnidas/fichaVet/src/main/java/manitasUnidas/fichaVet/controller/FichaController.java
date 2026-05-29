@@ -3,23 +3,29 @@ package manitasUnidas.fichaVet.controller;
 import manitasUnidas.fichaVet.model.Ficha;
 import manitasUnidas.fichaVet.service.FichaService;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/fichavet")
 public class FichaController {
 
-    @Autowired
-    private FichaService fichaServ;
+    private final FichaService fichaServ;
+
+    public FichaController(FichaService fichaServ) {
+        this.fichaServ = fichaServ;
+    }
 
     // 1. CREAR
     @PostMapping
     public ResponseEntity<Ficha> crearFicha(@Valid @RequestBody Ficha ficha) {
+
+        log.info("Creando ficha veterinaria para mascota {}", ficha.getIdMascota());
 
         fichaServ.saveFicha(ficha);
 
@@ -28,31 +34,45 @@ public class FichaController {
 
     // 2. TRAER TODAS
     @GetMapping
-    public List<Ficha> traerFichas() {
-        return fichaServ.getFichas();
+    public ResponseEntity<List<Ficha>> traerFichas() {
+
+        log.info("Obteniendo todas las fichas veterinarias");
+
+        return ResponseEntity.ok(fichaServ.getFichas());
     }
 
     // 3. TRAER POR ID
     @GetMapping("/{id}")
-    public Ficha traerFicha(@PathVariable Long id) {
-        return fichaServ.findFicha(id);
+    public ResponseEntity<Ficha> traerFicha(@PathVariable Long id) {
+
+        log.info("Buscando ficha {}", id);
+
+        return ResponseEntity.ok(fichaServ.findFicha(id));
     }
 
     // 4. HISTORIAL POR MASCOTA
     @GetMapping("/mascota/{idMascota}")
-    public List<Ficha> historialPorMascota(@PathVariable Integer idMascota) {
-        return fichaServ.findByMascota(idMascota);
+    public ResponseEntity<List<Ficha>> historialPorMascota(@PathVariable Long idMascota) {
+
+        log.info("Historial de mascota {}", idMascota);
+
+        return ResponseEntity.ok(fichaServ.findByMascota(idMascota));
     }
 
     // 5. BUSCAR POR VETERINARIO
     @GetMapping("/veterinario/{rut}")
-    public List<Ficha> buscarPorRut(@PathVariable String rut) {
-        return fichaServ.findByRutVeterinario(rut);
+    public ResponseEntity<List<Ficha>> buscarPorRut(@PathVariable String rut) {
+
+        log.info("Buscando fichas del veterinario {}", rut);
+
+        return ResponseEntity.ok(fichaServ.findByRutVeterinario(rut));
     }
 
     // 6. ELIMINAR
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarFicha(@PathVariable Long id) {
+
+        log.warn("Eliminando ficha {}", id);
 
         fichaServ.deleteFicha(id);
 
@@ -61,10 +81,12 @@ public class FichaController {
 
     // 7. EDITAR
     @PutMapping("/{id}")
-    public ResponseEntity<Ficha> editarFicha(@PathVariable Long id,@Valid @RequestBody Ficha ficha) {
+    public ResponseEntity<Ficha> editarFicha(
+            @PathVariable Long id,
+            @Valid @RequestBody Ficha ficha) {
 
-        Ficha fichaActualizada = fichaServ.editFicha(id, ficha);
+        log.info("Actualizando ficha {}", id);
 
-        return ResponseEntity.ok(fichaActualizada);
+        return ResponseEntity.ok(fichaServ.editFicha(id, ficha));
     }
 }

@@ -3,66 +3,65 @@ package manitasUnidas.fichaVet.service;
 import manitasUnidas.fichaVet.exception.ResourceNotFoundException;
 import manitasUnidas.fichaVet.model.Ficha;
 import manitasUnidas.fichaVet.repository.FichaRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Slf4j
 @Service
 public class FichaService {
 
-    @Autowired
-    private FichaRepository fichaRepo;
+    private final FichaRepository fichaRepo;
 
-    /**
-     * Guarda una nueva ficha o actualiza una existente.
-     * Aquí se aplican las validaciones que definiste en el Model al persistir.
-     */
+    public FichaService(FichaRepository fichaRepo) {
+        this.fichaRepo = fichaRepo;
+    }
+
     public void saveFicha(Ficha ficha) {
+        log.info("Guardando ficha veterinaria para mascota {}", ficha.getIdMascota());
         fichaRepo.save(ficha);
     }
 
-    /**
-     * Retorna la lista completa de todas las fichas del albergue.
-     */
     public List<Ficha> getFichas() {
+        log.info("Obteniendo todas las fichas veterinarias");
         return fichaRepo.findAll();
     }
 
-    /**
-     * Busca una ficha médica por su ID único.
-     */
     public Ficha findFicha(Long id) {
+        log.info("Buscando ficha con id {}", id);
+
         return fichaRepo.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("No se encontró la ficha médica con ID: " + id));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("No se encontró la ficha médica con ID: " + id));
     }
 
-    /**
-     * ELIMINAR: Borra el registro médico por ID.
-     */
     public void deleteFicha(Long id) {
-        Ficha ficha = this.findFicha(id); // Si no existe, lanza la excepción aquí
+        log.warn("Eliminando ficha con id {}", id);
+
+        Ficha ficha = this.findFicha(id);
         fichaRepo.delete(ficha);
     }
 
-    /**
-     * HISTORIAL POR MASCOTA: Este es el método que te da el respaldo 
-     * de cada animal usando el método que creaste en el Repository.
-     */
-    public List<Ficha> findByMascota(Integer idMascota) {
+    public List<Ficha> findByMascota(Long idMascota) {
+        log.info("Buscando historial de mascota {}", idMascota);
+
         List<Ficha> fichas = fichaRepo.findByIdMascota(idMascota);
+
         if (fichas.isEmpty()) {
+            log.warn("No se encontraron fichas para mascota {}", idMascota);
             throw new ResourceNotFoundException("No se encontraron registros médicos para la mascota con ID: " + idMascota);
         }
         return fichas;
     }
 
-    /**
-     * BUSCAR POR RUT: Para saber qué fichas hizo un veterinario específico.
-     */
     public List<Ficha> findByRutVeterinario(String rut) {
+        log.info("Buscando fichas del veterinario {}", rut);
+
         List<Ficha> fichas = fichaRepo.findByRut(rut);
+
         if (fichas.isEmpty()) {
+            log.warn("No se encontraron fichas para veterinario {}", rut);
             throw new ResourceNotFoundException("No se encontraron fichas registradas por el veterinario RUT: " + rut);
         }
         return fichas;
@@ -70,8 +69,11 @@ public class FichaService {
 
     public Ficha editFicha(Long id, Ficha fichaActualizada) {
 
-    Ficha fichaExistente = fichaRepo.findById(id)
-        .orElseThrow(() -> new RuntimeException("Ficha no encontrada"));
+        log.info("Actualizando ficha {}", id);
+
+        Ficha fichaExistente = fichaRepo.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Ficha no encontrada con ID: " + id));
 
         fichaExistente.setFechaConsulta(fichaActualizada.getFechaConsulta());
         fichaExistente.setRut(fichaActualizada.getRut());

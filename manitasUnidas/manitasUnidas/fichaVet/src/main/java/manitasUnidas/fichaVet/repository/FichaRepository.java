@@ -12,7 +12,7 @@ public interface FichaRepository extends JpaRepository<Ficha, Long> {
 
     // Método personalizado para obtener el historial de una mascota por su ID
 
-    List<Ficha> findByIdMascota(Integer idMascota);
+    List<Ficha> findByIdMascota(Long idMascota);
 
     // Método para filtrar fichas por el RUT del veterinario
     List<Ficha> findByRut(String rut);
