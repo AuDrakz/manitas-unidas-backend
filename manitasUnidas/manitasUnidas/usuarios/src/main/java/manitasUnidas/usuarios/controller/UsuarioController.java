@@ -58,8 +58,10 @@ public class UsuarioController {
         return ResponseEntity.noContent().build();
     }
 
+    // Método para verificar si el usuario existe (ideal para Feign Clients)
     @GetMapping("/existe/{id}")
-    public boolean verificarExistencia(@PathVariable Long id) {
-        return usuarioService.existePorId(id);
+    public ResponseEntity<Boolean> verificarExistencia(@PathVariable Long id) {
+        boolean existe = usuarioService.existePorId(id);
+        return ResponseEntity.ok(existe);
     }
 }
