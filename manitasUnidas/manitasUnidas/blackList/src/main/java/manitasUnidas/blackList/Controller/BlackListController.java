@@ -19,25 +19,43 @@ public class BlackListController {
     private BlackListService service;
 
     @GetMapping
-    public List<BlackList> listar() {
-        return service.obtenerTodos();
+    public ResponseEntity<List<BlackList>> listar() {
+        List<BlackList> lista = service.obtenerTodos();
+        return ResponseEntity.ok(lista);
     }
+    
+    // @GetMapping
+    // public List<BlackList> listar() {
+    //     return service.obtenerTodos();
+    // }
 
     @GetMapping("/{id}")
     public ResponseEntity<BlackList> buscarPorId(@PathVariable Long id) {
         return ResponseEntity.ok(service.obtenerPorId(id));
     }
 
+    
     // En BlackListController.java
     @GetMapping("/verificar/{rut}")
-    public boolean estaBloqueado(@PathVariable String rut) {
+    public ResponseEntity<Boolean> estaBloqueado(@PathVariable String rut) {
         try {
-            service.buscarPorRut(rut); // Si lo encuentra, lanza éxito
-            return true; 
+            service.buscarPorRut(rut); // Si lo encuentra, significa que está en la lista negra
+            return ResponseEntity.ok(true); 
         } catch (Exception e) {
-            return false; // Si no lo encuentra (excepción), no está bloqueado
+            return ResponseEntity.ok(false); // Si no lo encuentra, no está bloqueado
         }
     }
+
+    // En BlackListController.java
+    // @GetMapping("/verificar/{rut}")
+    // public boolean estaBloqueado(@PathVariable String rut) {
+    //     try {
+    //         service.buscarPorRut(rut); // Si lo encuentra, lanza éxito
+    //         return true; 
+    //     } catch (Exception e) {
+    //         return false; // Si no lo encuentra (excepción), no está bloqueado
+    //     }
+    // }
 
     @PostMapping
     public ResponseEntity<BlackList> agregar(@Valid @RequestBody BlackList registro) {

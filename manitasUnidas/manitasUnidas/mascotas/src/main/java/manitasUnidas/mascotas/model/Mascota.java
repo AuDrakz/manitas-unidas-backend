@@ -8,11 +8,15 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "mascotas")
 @Data
+@NoArgsConstructor    // OBLIGATORIO: Para que Hibernate, Jackson y Swagger puedan instanciar la entidad
+@AllArgsConstructor   // Recomendado: Para crear objetos con datos rápidamente
 public class Mascota {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

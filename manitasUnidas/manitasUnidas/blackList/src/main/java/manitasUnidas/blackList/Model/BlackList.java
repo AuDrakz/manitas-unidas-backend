@@ -10,11 +10,15 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "blacklist")
 @Data
+@NoArgsConstructor    // OBLIGATORIO: Para que Swagger y Jackson puedan leer la entidad
+@AllArgsConstructor   // Recomendado: Para construir objetos con datos fácilmente
 public class BlackList {
 
     @Id
