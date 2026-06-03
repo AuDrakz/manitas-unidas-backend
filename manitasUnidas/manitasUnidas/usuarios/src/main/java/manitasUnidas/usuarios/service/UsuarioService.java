@@ -1,3 +1,9 @@
+// ============================================================
+// ARCHIVO 1: UsuarioService.java
+// Ruta: manitasUnidas/usuarios/service/UsuarioService.java
+// CAMBIO: agregar @Slf4j y logs en cada método
+// ============================================================
+
 package manitasUnidas.usuarios.service;
 
 import java.util.List;
@@ -5,55 +11,60 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import lombok.extern.slf4j.Slf4j;
 import manitasUnidas.usuarios.exception.ResourceNotFoundException;
 import manitasUnidas.usuarios.model.Usuario;
 import manitasUnidas.usuarios.repository.UsuarioRepository;
 
+@Slf4j   // <-- AGREGA ESTE
 @Service
 public class UsuarioService {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
 
-    // metodo para obtener todos los usuarios
     public List<Usuario> obtenerTodos() {
+        log.info("[UsuarioService] Consultando todos los usuarios");
         return usuarioRepository.findAll();
     }
 
-    // metodo para registrar usuario
     public Usuario registrarUsuario(Usuario usuario) {
-        // verificamos si es que ya existe un usuario con el rut de usuario
+        log.info("[UsuarioService] Intentando registrar usuario con RUT={}", usuario.getRut());
         if (usuarioRepository.existsByRut(usuario.getRut())) {
-            throw new RuntimeException("No se puede registrar: El RUT " + usuario.getRut());
+            log.warn("[UsuarioService] RUT={} ya existe en el sistema", usuario.getRut());
+            throw new RuntimeException("No se puede registrar: El RUT " + usuario.getRut() + " ya está en uso.");
         }
-        // en caso de que no exista se registra el nuevo usuario
-        return usuarioRepository.save(usuario);
+        Usuario guardado = usuarioRepository.save(usuario);
+        log.info("[UsuarioService] Usuario registrado con ID={}", guardado.getId());
+        return guardado;
     }
 
-    // metodo para buscar un usuario mediante el Id
     public Usuario buscarPorId(Long id) {
+        log.info("[UsuarioService] Buscando usuario con ID={}", id);
         return usuarioRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + id));
+                .orElseThrow(() -> {
+                    log.warn("[UsuarioService] Usuario con ID={} no encontrado", id);
+                    return new ResourceNotFoundException("Usuario no encontrado con ID: " + id);
+                });
     }
 
     public Usuario actualizarUsuario(Long id, Usuario datosNuevos) {
-        // Buscamos por ID usando el método que ya tienes
+        log.info("[UsuarioService] Actualizando usuario con ID={}", id);
         Usuario usuarioExistente = buscarPorId(id);
-        
-        // Actualizamos los campos
         usuarioExistente.setNombre(datosNuevos.getNombre());
         usuarioExistente.setCorreo(datosNuevos.getCorreo());
         usuarioExistente.setDireccion(datosNuevos.getDireccion());
         usuarioExistente.setTelefono(datosNuevos.getTelefono());
         usuarioExistente.setRol(datosNuevos.getRol());
-        
-        // Guardamos los cambios en el repository
-        return usuarioRepository.save(usuarioExistente);
+        Usuario actualizado = usuarioRepository.save(usuarioExistente);
+        log.info("[UsuarioService] Usuario ID={} actualizado exitosamente", id);
+        return actualizado;
     }
 
-    // metodo para eliminar un usuario mediante su Id
     public void eliminar(Long id) {
+        log.info("[UsuarioService] Eliminando usuario con ID={}", id);
         usuarioRepository.deleteById(id);
+        log.info("[UsuarioService] Usuario ID={} eliminado", id);
     }
 
     public boolean existePorId(Long id) {
