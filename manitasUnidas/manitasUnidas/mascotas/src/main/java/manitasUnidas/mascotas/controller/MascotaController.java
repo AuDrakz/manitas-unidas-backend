@@ -46,7 +46,7 @@ public class MascotaController {
     // PUT /api/mascotas/{id}  --  ahora recibe MascotaRequestDTO, no la entidad
     @PutMapping("/{id}")
     public ResponseEntity<Mascota> actualizar(@PathVariable Long id,
-                                              @Valid @RequestBody MascotaRequestDTO dto) {
+        @Valid @RequestBody MascotaRequestDTO dto) {
         log.info("[MascotaController] PUT /api/mascotas/{}", id);
         Mascota actualizada = mascotaService.actualizarMascota(id, dto);
         return ResponseEntity.ok(actualizada);
