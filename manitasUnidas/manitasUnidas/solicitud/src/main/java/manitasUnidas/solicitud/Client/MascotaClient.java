@@ -6,6 +6,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 @FeignClient(name = "ms-mascotas")
 public interface MascotaClient {
-    @GetMapping("/api/mascotas/{id}")
-    Object obtenerMascota(@PathVariable("id") Long id); 
+
+    // Obtiene el estado actual de la mascota (Disponible, Adoptado, En tratamiento)
+    @GetMapping("/api/mascotas/estado/{id}")
+    String obtenerEstado(@PathVariable("id") Long id);
 }

@@ -2,18 +2,21 @@ package manitasUnidas.solicitud.Service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import lombok.extern.slf4j.Slf4j;
 import manitasUnidas.solicitud.Model.Solicitud;
 import manitasUnidas.solicitud.Repository.SolicitudRepository;
 import manitasUnidas.solicitud.Client.BlackListClient;
-import manitasUnidas.solicitud.Client.MascotaClient; // Importamos el cliente de mascotas
+import manitasUnidas.solicitud.Client.MascotaClient;
+import manitasUnidas.solicitud.Client.UsuarioClient;   // <-- NUEVO
 import manitasUnidas.solicitud.DTO.SolicitudRequestDTO;
 import manitasUnidas.solicitud.Exception.SolicitudRechazadaException;
-import manitasUnidas.solicitud.Exception.ResourceNotFoundException; // Asegúrate de tener esta excepción
+import manitasUnidas.solicitud.Exception.ResourceNotFoundException;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
+@Slf4j   // <-- AGREGA ESTE
 @Service
 public class SolicitudService {
 
@@ -24,30 +27,51 @@ public class SolicitudService {
     private BlackListClient blackListClient;
 
     @Autowired
-    private MascotaClient mascotaClient; // Inyectamos el cliente de mascotas
+    private MascotaClient mascotaClient;
 
-    // 1. Crear con doble validación (Blacklist y Existencia de Mascota)
+    @Autowired
+    private UsuarioClient usuarioClient;   // <-- NUEVO: valida que el adoptante exista
+
+    // 1. Crear solicitud con validaciones completas
     public Solicitud crearSolicitud(SolicitudRequestDTO dto) {
-        
-        // --- VALIDACIÓN 1: LISTA NEGRA ---
+        log.info("[SolicitudService] Creando solicitud: adoptante ID={}, rut={}, mascota ID={}",
+                dto.getIdAdoptante(), dto.getRutAdoptante(), dto.getIdMascota());
+
+        // VALIDACIÓN 1: El adoptante debe existir en ms-usuarios
+        if (!usuarioClient.existeUsuario(dto.getIdAdoptante())) {
+            log.warn("[SolicitudService] Adoptante con ID={} no existe en ms-usuarios", dto.getIdAdoptante());
+            throw new ResourceNotFoundException("El adoptante con ID " + dto.getIdAdoptante() + " no existe en el sistema.");
+        }
+
+        // VALIDACIÓN 2: Lista negra
         boolean bloqueado = blackListClient.estaBloqueado(dto.getRutAdoptante());
         if (bloqueado) {
+            log.warn("[SolicitudService] Adoptante RUT={} bloqueado en lista negra", dto.getRutAdoptante());
             throw new SolicitudRechazadaException("El adoptante con RUT " + dto.getRutAdoptante() + " está en la lista negra.");
         }
 
-        // --- VALIDACIÓN 2: EXISTENCIA DE MASCOTA ---
+        // VALIDACIÓN 3: La mascota debe existir y estar disponible
+        String estadoMascota;
         try {
-            // Llamamos al microservicio de mascotas
-            Object mascota = mascotaClient.obtenerMascota(dto.getIdMascota());
-            if (mascota == null) {
-                throw new ResourceNotFoundException("La mascota con ID " + dto.getIdMascota() + " no existe.");
-            }
+            estadoMascota = mascotaClient.obtenerEstado(dto.getIdMascota());
         } catch (Exception e) {
-            // Si el micro de mascotas responde error o no está disponible
+            log.error("[SolicitudService] Error al consultar mascota ID={}: {}", dto.getIdMascota(), e.getMessage());
             throw new ResourceNotFoundException("No se puede proceder: La mascota con ID " + dto.getIdMascota() + " no fue encontrada.");
         }
 
-        // --- PROCESO DE GUARDADO ---
+        if (!"Disponible".equalsIgnoreCase(estadoMascota)) {
+            log.warn("[SolicitudService] Mascota ID={} no disponible, estado actual={}", dto.getIdMascota(), estadoMascota);
+            throw new SolicitudRechazadaException("La mascota con ID " + dto.getIdMascota() + " no está disponible (estado: " + estadoMascota + ").");
+        }
+
+        // VALIDACIÓN 4: Un adoptante no puede tener más de una solicitud PENDIENTE
+        boolean tienePendiente = repository.existsByIdAdoptanteAndEstado(dto.getIdAdoptante(), "PENDIENTE");
+        if (tienePendiente) {
+            log.warn("[SolicitudService] Adoptante ID={} ya tiene una solicitud PENDIENTE", dto.getIdAdoptante());
+            throw new SolicitudRechazadaException("El adoptante ya tiene una solicitud en estado PENDIENTE. Debe esperar resolución.");
+        }
+
+        // Guardado
         Solicitud solicitud = new Solicitud();
         solicitud.setIdAdoptante(dto.getIdAdoptante());
         solicitud.setRutAdoptante(dto.getRutAdoptante());
@@ -56,40 +80,42 @@ public class SolicitudService {
         solicitud.setEstado("PENDIENTE");
         solicitud.setFechaSolicitud(LocalDate.now());
 
-        return repository.save(solicitud);
+        Solicitud guardada = repository.save(solicitud);
+        log.info("[SolicitudService] Solicitud creada exitosamente con ID={}", guardada.getId());
+        return guardada;
     }
 
-    // 2. Obtener todas
+    // 2. Listar todas
     public List<Solicitud> obtenerTodas() {
+        log.info("[SolicitudService] Listando todas las solicitudes");
         return repository.findAll();
     }
 
-    // 3. Buscar por ID
+    // 3. Buscar por ID -- CAMBIO: ahora lanza excepción en vez de retornar null
     public Solicitud buscarPorId(Long id) {
-        Optional<Solicitud> op = repository.findById(id);
-        if (op.isPresent()) {
-            return op.get();
-        }
-        return null;
+        log.info("[SolicitudService] Buscando solicitud ID={}", id);
+        return repository.findById(id)
+                .orElseThrow(() -> {
+                    log.warn("[SolicitudService] Solicitud ID={} no encontrada", id);
+                    return new ResourceNotFoundException("Solicitud no encontrada con ID: " + id);
+                });
     }
 
-    // 4. Cambiar Estado (Update)
+    // 4. Cambiar estado -- CAMBIO: ahora lanza excepción en vez de retornar null
     public Solicitud cambiarEstado(Long id, String nuevoEstado) {
-        Optional<Solicitud> op = repository.findById(id);
-        if (op.isPresent()) {
-            Solicitud solicitud = op.get();
-            solicitud.setEstado(nuevoEstado);
-            return repository.save(solicitud);
-        }
-        return null;
+        log.info("[SolicitudService] Cambiando estado de solicitud ID={} a '{}'", id, nuevoEstado);
+        Solicitud solicitud = buscarPorId(id);
+        solicitud.setEstado(nuevoEstado);
+        Solicitud actualizada = repository.save(solicitud);
+        log.info("[SolicitudService] Estado de solicitud ID={} actualizado a '{}'", id, nuevoEstado);
+        return actualizada;
     }
 
-    // 5. Eliminar (Delete)
-    public boolean eliminarSolicitud(Long id) {
-        if (repository.existsById(id)) {
-            repository.deleteById(id);
-            return true;
-        }
-        return false;
+    // 5. Eliminar -- CAMBIO: lanza excepción en vez de retornar boolean
+    public void eliminarSolicitud(Long id) {
+        log.info("[SolicitudService] Eliminando solicitud ID={}", id);
+        buscarPorId(id); // Lanza 404 si no existe
+        repository.deleteById(id);
+        log.info("[SolicitudService] Solicitud ID={} eliminada", id);
     }
 }
