@@ -4,6 +4,7 @@ import manitasUnidas.refugios.model.Refugio;
 import manitasUnidas.refugios.service.RefugioService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -52,12 +53,18 @@ public class RefugioController {
         return "El refugio cuenta con " + cupos + " cupos disponibles.";
     }
 
+
     // ELIMINAR: DELETE /api/refugios/{id}
     @DeleteMapping("/{id}")
-    public String eliminar(@PathVariable Long id) {
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         refugioServ.eliminarRefugio(id);
-        return "El refugio ha sido eliminado correctamente.";
+        return ResponseEntity.noContent().build(); 
     }
+    // @DeleteMapping("/{id}")
+    // public String eliminar(@PathVariable Long id) {
+    //     refugioServ.eliminarRefugio(id);
+    //     return "El refugio ha sido eliminado correctamente.";
+    // }
 
     // EDITAR: PUT /api/refugios/{id}
     @PutMapping("/{id}")

@@ -1,12 +1,17 @@
 package manitasUnidas.notificaciones.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "notificaciones")
 @Data
+@NoArgsConstructor  // <-- AGREGADO OBLIGATORIO
+@AllArgsConstructor // <-- AGREGADO OBLIGATORIO
 public class Notificacion {
 
     @Id
@@ -45,5 +50,4 @@ public class Notificacion {
     protected void onCreate() {
         this.fechaEnvio = LocalDateTime.now();
     }
-
-} // <--- LA LLAVE DEBE CERRAR AQUÍ, DESPUÉS DE TODO
+}
