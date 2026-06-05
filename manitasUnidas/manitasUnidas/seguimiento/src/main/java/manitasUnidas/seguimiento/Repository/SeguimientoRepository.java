@@ -9,15 +9,12 @@ import java.util.List;
 @Repository
 public interface SeguimientoRepository extends JpaRepository<Seguimiento, Long> {
 
-    // HISTORIAL CLINICO COMPLETO DE LA FICHA VETERINARIA
-    List<Seguimiento> findByFichaVetId(Long fichaVetId);
+    // HISTORIAL COMPLETO DE UNA FICHA VETERINARIA
+    List<Seguimiento> findByFichaVetIdOrderByIdDesc(Long fichaVetId);
 
+    // FILTRAR POR ESTADO
+    List<Seguimiento> findByEstadoOrderByIdDesc(String estado);
 
-    // BUSCAR POR ESTADO
-    List<Seguimiento> findByEstado(String estado);
-
-
-    // VALIDAR EXISTENCIA
+    // VALIDAR SI EXISTE SEGUIMIENTO PARA UNA FICHA
     boolean existsByFichaVetId(Long fichaVetId);
-
 }

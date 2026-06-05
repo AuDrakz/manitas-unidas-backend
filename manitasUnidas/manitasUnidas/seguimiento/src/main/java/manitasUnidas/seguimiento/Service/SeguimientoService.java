@@ -3,7 +3,8 @@ package manitasUnidas.seguimiento.Service;
 import manitasUnidas.seguimiento.Model.Seguimiento;
 import manitasUnidas.seguimiento.Repository.SeguimientoRepository;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -11,66 +12,98 @@ import java.util.List;
 @Service
 public class SeguimientoService {
 
-    @Autowired
-    private SeguimientoRepository repository;
+    private static final Logger logger =
+            LoggerFactory.getLogger(SeguimientoService.class);
 
+    private final SeguimientoRepository repository;
+
+    public SeguimientoService(SeguimientoRepository repository) {
+        this.repository = repository;
+    }
 
     // CREAR SEGUIMIENTO
     public Seguimiento crearSeguimiento(Seguimiento seguimiento) {
-        return repository.save(seguimiento);
-    }
 
+        logger.info("Creando nuevo seguimiento para fichaVetId={}", seguimiento.getFichaVetId());
+
+        Seguimiento saved = repository.save(seguimiento);
+
+        logger.info("Seguimiento creado con ID={}", saved.getId());
+
+        return saved;
+    }
 
     // LISTAR TODOS LOS SEGUIMIENTOS
     public List<Seguimiento> listarSeguimientos() {
+
+        logger.info("Listando todos los seguimientos");
+
         return repository.findAll();
     }
 
-
-    // BUSCAR SEGUIMIENTO POR ID
+    // BUSCAR POR ID
     public Seguimiento obtenerPorId(Long id) {
-        return repository.findById(id).orElse(null);
+
+        logger.info("Buscando seguimiento con ID={}", id);
+
+        return repository.findById(id)
+                .orElseThrow(() -> {
+                    logger.error("Seguimiento no encontrado con ID={}", id);
+                    return new RuntimeException("Seguimiento no encontrado");
+                });
     }
 
-
-    // OBTENER HISTORIAL CLINICO COMPLETO DE LA FICHA VETERINARIA
+    // HISTORIAL CLINICO
     public List<Seguimiento> obtenerHistorialClinico(Long fichaVetId) {
-        return repository.findByFichaVetId(fichaVetId);
-    }
 
+        logger.info("Consultando historial clínico para fichaVetId={}", fichaVetId);
+
+        return repository.findByFichaVetIdOrderByIdDesc(fichaVetId);
+    }
 
     // BUSCAR POR ESTADO
     public List<Seguimiento> buscarPorEstado(String estado) {
-        return repository.findByEstado(estado);
+
+        logger.info("Buscando seguimientos por estado={}", estado);
+
+        return repository.findByEstadoOrderByIdDesc(estado);
     }
 
-
-    // VALIDAR SI EXISTE LA FICHA VETERINARIA
+    // VALIDAR EXISTENCIA
     public boolean existeFichaVet(Long fichaVetId) {
+
+        logger.info("Validando existencia de fichaVetId={}", fichaVetId);
+
         return repository.existsByFichaVetId(fichaVetId);
     }
 
+    // ACTUALIZAR
+    public Seguimiento actualizarSeguimiento(Long id, Seguimiento nuevo) {
 
-    // ACTUALIZAR SEGUIMIENTO
-    public Seguimiento actualizarSeguimiento(Long id, Seguimiento nuevoSeguimiento) {
+        logger.info("Actualizando seguimiento ID={}", id);
 
-        Seguimiento seguimientoExistente = repository.findById(id).orElse(null);
+        Seguimiento existente = repository.findById(id)
+                .orElseThrow(() -> {
+                    logger.error("No existe seguimiento con ID={}", id);
+                    return new RuntimeException("Seguimiento no encontrado");
+                });
 
-        if (seguimientoExistente != null) {
+        existente.setFichaVetId(nuevo.getFichaVetId());
+        existente.setEstado(nuevo.getEstado());
+        existente.setComentario(nuevo.getComentario());
 
-            seguimientoExistente.setFichaVetId(nuevoSeguimiento.getFichaVetId());
-            seguimientoExistente.setEstado(nuevoSeguimiento.getEstado());
-            seguimientoExistente.setComentario(nuevoSeguimiento.getComentario());
+        Seguimiento updated = repository.save(existente);
 
-            return repository.save(seguimientoExistente);
-        }
+        logger.info("Seguimiento actualizado ID={}", updated.getId());
 
-        return null;
+        return updated;
     }
 
-
-    // ELIMINAR SEGUIMIENTO
+    // ELIMINAR
     public void eliminarSeguimiento(Long id) {
+
+        logger.warn("Eliminando seguimiento ID={}", id);
+
         repository.deleteById(id);
     }
 }
