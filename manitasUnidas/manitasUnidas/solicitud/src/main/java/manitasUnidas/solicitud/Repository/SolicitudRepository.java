@@ -1,7 +1,8 @@
-package manitasUnidas.solicitud.Repository;
+package manitasUnidas.solicitud.repository;
 
-import manitasUnidas.solicitud.Model.Solicitud;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import manitasUnidas.solicitud.model.Solicitud;
 
 public interface SolicitudRepository extends JpaRepository<Solicitud, Long> {
 

@@ -1,4 +1,4 @@
-package manitasUnidas.solicitud.Exception;
+package manitasUnidas.solicitud.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -1,4 +1,4 @@
-package manitasUnidas.seguridad.Service; // 'Service' con S mayúscula
+package manitasUnidas.seguridad.service; 
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;

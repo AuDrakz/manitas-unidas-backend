@@ -1,4 +1,4 @@
-package manitasUnidas.seguridad.Model; // Fíjate que la M sea mayúscula
+package manitasUnidas.seguridad.model; 
 
 import lombok.Data;
 

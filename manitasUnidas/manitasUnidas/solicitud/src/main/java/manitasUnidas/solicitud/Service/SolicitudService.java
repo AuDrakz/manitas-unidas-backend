@@ -1,17 +1,17 @@
-package manitasUnidas.solicitud.Service;
+package manitasUnidas.solicitud.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import lombok.extern.slf4j.Slf4j;
-import manitasUnidas.solicitud.Model.Solicitud;
-import manitasUnidas.solicitud.Repository.SolicitudRepository;
-import manitasUnidas.solicitud.Client.BlackListClient;
-import manitasUnidas.solicitud.Client.MascotaClient;
-import manitasUnidas.solicitud.Client.UsuarioClient;   // <-- NUEVO
-import manitasUnidas.solicitud.DTO.SolicitudRequestDTO;
-import manitasUnidas.solicitud.Exception.SolicitudRechazadaException;
-import manitasUnidas.solicitud.Exception.ResourceNotFoundException;
+import manitasUnidas.solicitud.model.Solicitud;
+import manitasUnidas.solicitud.repository.SolicitudRepository;
+import manitasUnidas.solicitud.client.BlackListClient;
+import manitasUnidas.solicitud.client.MascotaClient;
+import manitasUnidas.solicitud.client.UsuarioClient;   // <-- NUEVO
+import manitasUnidas.solicitud.dto.SolicitudRequestDTO;
+import manitasUnidas.solicitud.exception.SolicitudRechazadaException;
+import manitasUnidas.solicitud.exception.ResourceNotFoundException;
 
 import java.time.LocalDate;
 import java.util.List;

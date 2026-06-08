@@ -1,4 +1,4 @@
-package manitasUnidas.seguridad.Model;
+package manitasUnidas.seguridad.model;
 
 
 import jakarta.persistence.*;

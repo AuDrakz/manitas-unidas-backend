@@ -1,4 +1,4 @@
-package manitasUnidas.solicitud.Client;
+package manitasUnidas.solicitud.client;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;

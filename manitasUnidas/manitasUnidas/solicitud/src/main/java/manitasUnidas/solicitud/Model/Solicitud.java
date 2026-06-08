@@ -1,4 +1,4 @@
-package manitasUnidas.solicitud.Model;
+package manitasUnidas.solicitud.model;
 
 import jakarta.persistence.*;
 import lombok.Data;

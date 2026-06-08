@@ -1,4 +1,4 @@
-package manitasUnidas.solicitud.Controller;
+package manitasUnidas.solicitud.controller;
 
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -7,13 +7,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import manitasUnidas.solicitud.Model.Solicitud;
-import manitasUnidas.solicitud.Service.SolicitudService;
-import manitasUnidas.solicitud.DTO.SolicitudRequestDTO;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import manitasUnidas.solicitud.model.Solicitud;
+import manitasUnidas.solicitud.service.SolicitudService;
+import manitasUnidas.solicitud.dto.SolicitudRequestDTO;
 
 import java.util.List;
 
-@Slf4j   // <-- AGREGA ESTE
+@Tag(name = "Solicitudes", description = "Gestión de solicitudes de adopción de mascotas")
+@Slf4j
 @RestController
 @RequestMapping("/api/solicitudes")
 public class SolicitudController {
@@ -21,22 +24,23 @@ public class SolicitudController {
     @Autowired
     private SolicitudService service;
 
-    // GET /api/solicitudes
+    @Operation(summary = "Listar todas las solicitudes", description = "Retorna la lista completa de solicitudes de adopción")
     @GetMapping
     public List<Solicitud> listar() {
         log.info("[SolicitudController] GET /api/solicitudes");
         return service.obtenerTodas();
     }
 
-    // GET /api/solicitudes/{id}
-    // CAMBIO: eliminado el if/null -- ahora el GlobalExceptionHandler maneja el 404
+    @Operation(summary = "Buscar solicitud por ID", description = "Retorna los datos de una solicitud específica")
     @GetMapping("/{id}")
     public ResponseEntity<Solicitud> obtenerPorId(@PathVariable Long id) {
         log.info("[SolicitudController] GET /api/solicitudes/{}", id);
         return ResponseEntity.ok(service.buscarPorId(id));
     }
 
-    // POST /api/solicitudes
+    @Operation(summary = "Crear nueva solicitud",
+               description = "Crea una solicitud validando: que el adoptante exista, no esté en lista negra, " +
+                             "la mascota esté disponible y no tenga otra solicitud pendiente")
     @PostMapping
     public ResponseEntity<Solicitud> crear(@Valid @RequestBody SolicitudRequestDTO dto) {
         log.info("[SolicitudController] POST /api/solicitudes - adoptante={}", dto.getIdAdoptante());
@@ -44,8 +48,8 @@ public class SolicitudController {
         return new ResponseEntity<>(nueva, HttpStatus.CREATED);
     }
 
-    // PUT /api/solicitudes/{id}/estado
-    // CAMBIO: eliminado el if/null -- ahora el GlobalExceptionHandler maneja el 404
+    @Operation(summary = "Actualizar estado de solicitud",
+               description = "Cambia el estado de una solicitud (PENDIENTE, APROBADA, RECHAZADA)")
     @PutMapping("/{id}/estado")
     public ResponseEntity<Solicitud> actualizarEstado(@PathVariable Long id,
                                                       @RequestBody String nuevoEstado) {
@@ -55,8 +59,7 @@ public class SolicitudController {
         return ResponseEntity.ok(actualizada);
     }
 
-    // DELETE /api/solicitudes/{id}
-    // CAMBIO: eliminado el if/boolean -- ahora el GlobalExceptionHandler maneja el 404
+    @Operation(summary = "Eliminar solicitud", description = "Elimina una solicitud del sistema por su ID")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         log.info("[SolicitudController] DELETE /api/solicitudes/{}", id);

@@ -1,4 +1,4 @@
-package manitasUnidas.solicitud.DTO;
+package manitasUnidas.solicitud.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

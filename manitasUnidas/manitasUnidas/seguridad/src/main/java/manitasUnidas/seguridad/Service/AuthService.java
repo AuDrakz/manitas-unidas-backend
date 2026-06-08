@@ -1,8 +1,8 @@
-package manitasUnidas.seguridad.Service;
+package manitasUnidas.seguridad.service;
 
-import manitasUnidas.seguridad.Model.AuthRequest;
-import manitasUnidas.seguridad.Model.Usuario;
-import manitasUnidas.seguridad.Repository.UsuarioRepository;
+import manitasUnidas.seguridad.model.AuthRequest;
+import manitasUnidas.seguridad.model.Usuario;
+import manitasUnidas.seguridad.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

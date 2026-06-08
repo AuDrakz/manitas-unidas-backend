@@ -1,6 +1,6 @@
-package manitasUnidas.seguridad.Repository; 
+package manitasUnidas.seguridad.repository; 
 
-import manitasUnidas.seguridad.Model.Usuario; 
+import manitasUnidas.seguridad.model.Usuario; 
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
