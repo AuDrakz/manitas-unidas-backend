@@ -2,50 +2,68 @@ package manitasUnidas.mascotas.service;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import lombok.extern.slf4j.Slf4j;
 import manitasUnidas.mascotas.client.RefugioClient;
 import manitasUnidas.mascotas.client.UsuarioClient;
 import manitasUnidas.mascotas.dto.MascotaRequestDTO;
+import manitasUnidas.mascotas.dto.MascotaResponseDTO;
 import manitasUnidas.mascotas.exception.ResourceNotFoundException;
 import manitasUnidas.mascotas.model.Mascota;
 import manitasUnidas.mascotas.repository.MascotaRepository;
 
-@Slf4j   
+@Slf4j
 @Service
 public class MascotaService {
 
-    @Autowired
-    private MascotaRepository mascotaRepository;
+    private final MascotaRepository mascotaRepository;
+    private final UsuarioClient usuarioClient;
+    private final RefugioClient refugioClient;
 
-    @Autowired
-    private UsuarioClient usuarioClient;
-
-    @Autowired
-    private RefugioClient refugioClient;
-
-    public List<Mascota> obtenerTodas() {
-        log.info("[MascotaService] Consultando todas las mascotas");
-        return mascotaRepository.findAll();
+    public MascotaService(MascotaRepository mascotaRepository,
+                          UsuarioClient usuarioClient,
+                          RefugioClient refugioClient) {
+        this.mascotaRepository = mascotaRepository;
+        this.usuarioClient = usuarioClient;
+        this.refugioClient = refugioClient;
     }
 
-    public Mascota registrarMascota(MascotaRequestDTO dto) {
-        log.info("[MascotaService] Intentando registrar mascota: nombre={}, duenoId={}, refugioId={}",
-                dto.getNombre(), dto.getDuenoId(), dto.getRefugioId());
+    public List<MascotaResponseDTO> obtenerTodas() {
+        log.info("Consultando todas las mascotas");
+        return mascotaRepository.findAll()
+                .stream()
+                .map(this::toDTO)
+                .toList();
+    }
 
-        if (!usuarioClient.verificarExistencia(dto.getDuenoId())) {
-            log.warn("[MascotaService] Registro rechazado: usuario con ID {} no existe", dto.getDuenoId());
-            throw new ResourceNotFoundException("Error: El usuario con ID " + dto.getDuenoId() + " no existe.");
-        }
+    public MascotaResponseDTO registrarMascota(MascotaRequestDTO dto) {
 
-        if (!refugioClient.verificarExistencia(dto.getRefugioId())) {
-            log.warn("[MascotaService] Registro rechazado: refugio con ID {} no existe", dto.getRefugioId());
-            throw new ResourceNotFoundException("Error: El refugio con ID " + dto.getRefugioId() + " no existe.");
-        }
+        validarRelaciones(dto.getDuenoId(), dto.getRefugioId());
 
-        Mascota mascota = new Mascota();
+        Mascota mascota = toEntity(dto);
+
+        Mascota guardada = mascotaRepository.save(mascota);
+
+        log.info("Mascota registrada id={}", guardada.getId());
+
+        return toDTO(guardada);
+    }
+
+    public MascotaResponseDTO buscarPorId(Long id) {
+        Mascota mascota = mascotaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Mascota no encontrada id=" + id));
+
+        return toDTO(mascota);
+    }
+
+    public MascotaResponseDTO actualizarMascota(Long id, MascotaRequestDTO dto) {
+
+        Mascota mascota = mascotaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Mascota no encontrada id=" + id));
+
+        validarRelaciones(dto.getDuenoId(), dto.getRefugioId());
+
         mascota.setNombre(dto.getNombre());
         mascota.setEspecie(dto.getEspecie());
         mascota.setRaza(dto.getRaza());
@@ -53,57 +71,66 @@ public class MascotaService {
         mascota.setSexo(dto.getSexo());
         mascota.setDescripcion(dto.getDescripcion());
         mascota.setEstado(dto.getEstado());
-        mascota.setRefugioId(dto.getRefugioId());
         mascota.setDuenoId(dto.getDuenoId());
+        mascota.setRefugioId(dto.getRefugioId());
 
-        Mascota guardada = mascotaRepository.save(mascota);
-        log.info("[MascotaService] Mascota registrada exitosamente con ID={}", guardada.getId());
-        return guardada;
-    }
-
-    public Mascota buscarPorId(Long id) {
-        log.info("[MascotaService] Buscando mascota con ID={}", id);
-        return mascotaRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.warn("[MascotaService] Mascota con ID={} no encontrada", id);
-                    return new ResourceNotFoundException("Mascota no encontrada con el id: " + id);
-                });
-    }
-
-    public Mascota actualizarMascota(Long id, MascotaRequestDTO dto) {
-        log.info("[MascotaService] Intentando actualizar mascota ID={}", id);
-
-        Mascota mascotaExistente = buscarPorId(id);
-
-        if (!usuarioClient.verificarExistencia(dto.getDuenoId())) {
-            log.warn("[MascotaService] Actualización rechazada: nuevo dueño con ID {} no existe", dto.getDuenoId());
-            throw new ResourceNotFoundException("No se puede actualizar: El nuevo dueño con ID " + dto.getDuenoId() + " no existe.");
-        }
-
-        if (!refugioClient.verificarExistencia(dto.getRefugioId())) {
-            log.warn("[MascotaService] Actualización rechazada: refugio con ID {} no existe", dto.getRefugioId());
-            throw new ResourceNotFoundException("No se puede actualizar: El refugio con ID " + dto.getRefugioId() + " no existe.");
-        }
-
-        mascotaExistente.setNombre(dto.getNombre());
-        mascotaExistente.setEspecie(dto.getEspecie());
-        mascotaExistente.setRaza(dto.getRaza());
-        mascotaExistente.setEdad(dto.getEdad());
-        mascotaExistente.setSexo(dto.getSexo());
-        mascotaExistente.setDescripcion(dto.getDescripcion());
-        mascotaExistente.setEstado(dto.getEstado());
-        mascotaExistente.setRefugioId(dto.getRefugioId());
-        mascotaExistente.setDuenoId(dto.getDuenoId());
-
-        Mascota actualizada = mascotaRepository.save(mascotaExistente);
-        log.info("[MascotaService] Mascota ID={} actualizada exitosamente", id);
-        return actualizada;
+        return toDTO(mascotaRepository.save(mascota));
     }
 
     public void eliminar(Long id) {
-        log.info("[MascotaService] Eliminando mascota con ID={}", id);
-        buscarPorId(id); // Lanza 404 si no existe antes de eliminar
-        mascotaRepository.deleteById(id);
-        log.info("[MascotaService] Mascota ID={} eliminada", id);
+        Mascota mascota = mascotaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Mascota no encontrada id=" + id));
+
+        mascotaRepository.delete(mascota);
+    }
+
+    public boolean existePorId(Long id) {
+        return mascotaRepository.existsById(id);
+    }
+
+    public String obtenerEstado(Long id) {
+        Mascota mascota = mascotaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Mascota no encontrada id=" + id));
+
+        return mascota.getEstado();
+    }
+
+    private void validarRelaciones(Long duenoId, Long refugioId) {
+        if (!usuarioClient.verificarExistencia(duenoId)) {
+            throw new ResourceNotFoundException("Usuario no existe id=" + duenoId);
+        }
+
+        if (!refugioClient.verificarExistencia(refugioId)) {
+            throw new ResourceNotFoundException("Refugio no existe id=" + refugioId);
+        }
+    }
+
+    private Mascota toEntity(MascotaRequestDTO dto) {
+        Mascota m = new Mascota();
+        m.setNombre(dto.getNombre());
+        m.setEspecie(dto.getEspecie());
+        m.setRaza(dto.getRaza());
+        m.setEdad(dto.getEdad());
+        m.setSexo(dto.getSexo());
+        m.setDescripcion(dto.getDescripcion());
+        m.setEstado(dto.getEstado());
+        m.setDuenoId(dto.getDuenoId());
+        m.setRefugioId(dto.getRefugioId());
+        return m;
+    }
+
+    private MascotaResponseDTO toDTO(Mascota m) {
+        MascotaResponseDTO dto = new MascotaResponseDTO();
+        dto.setId(m.getId());
+        dto.setNombre(m.getNombre());
+        dto.setEspecie(m.getEspecie());
+        dto.setRaza(m.getRaza());
+        dto.setEdad(m.getEdad());
+        dto.setSexo(m.getSexo());
+        dto.setDescripcion(m.getDescripcion());
+        dto.setEstado(m.getEstado());
+        dto.setDuenoId(m.getDuenoId());
+        dto.setRefugioId(m.getRefugioId());
+        return dto;
     }
 }

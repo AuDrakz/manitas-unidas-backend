@@ -5,23 +5,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface RefugioRepository extends JpaRepository<Refugio, Long> {
 
+    Optional<Refugio> findByNombre(String nombre);
 
-    // Busca refugios por comuna.
-    // Aunque la dirección es un String único, si el usuario escribe la comuna,
-    // este método ayudará a encontrar coincidencias.
-
-    List<Refugio> findByDireccion(String comuna);
-
-
-    //Busca refugios que tengan capacidad disponible.
-    // Compara que la ocupación actual sea menor al límite enviado.
-    List<Refugio> findByCapacidadActual(Integer limite);
-
-
-     //Busca refugios por nombre de forma exacta.   
-    Refugio findByNombre(String nombre);
+    List<Refugio> findByDireccion(String direccion);
 }
