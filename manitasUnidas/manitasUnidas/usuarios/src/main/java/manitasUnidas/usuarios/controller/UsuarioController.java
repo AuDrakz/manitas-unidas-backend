@@ -5,60 +5,58 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import manitasUnidas.usuarios.model.Usuario;
 import manitasUnidas.usuarios.service.UsuarioService;
 
+@Tag(name = "Usuarios", description = "Gestión de usuarios del sistema de adopción")
 @RestController
 @RequestMapping("/api/usuarios")
 public class UsuarioController {
+
     @Autowired
     private UsuarioService usuarioService;
 
-    // Obtener todos los usuarios
+    @Operation(summary = "Listar todos los usuarios", description = "Retorna la lista completa de usuarios registrados")
     @GetMapping
     public List<Usuario> listar() {
         return usuarioService.obtenerTodos();
     }
 
-    // obtener usuario mediante ID
+    @Operation(summary = "Buscar usuario por ID", description = "Retorna los datos de un usuario específico")
     @GetMapping("/{id}")
     public ResponseEntity<Usuario> buscarPorId(@PathVariable Long id) {
         return ResponseEntity.ok(usuarioService.buscarPorId(id));
     }
 
-    // registrar un nuevo usuario
-    // el @Valid nos activa nuestras anotaciones @NotBlank y @Email que utilizamos en Model
+    @Operation(summary = "Registrar nuevo usuario",
+               description = "Crea un nuevo usuario. Valida campos obligatorios como nombre, correo y RUT")
     @PostMapping
     public ResponseEntity<Usuario> guardar(@Valid @RequestBody Usuario usuario) {
-        return new ResponseEntity<>(usuarioService.registrarUsuario(usuario),HttpStatus.CREATED);
+        return new ResponseEntity<>(usuarioService.registrarUsuario(usuario), HttpStatus.CREATED);
     }
 
-    @PutMapping("/{id}") // Corregido el cierre de llave }
+    @Operation(summary = "Actualizar usuario", description = "Actualiza los datos de un usuario existente")
+    @PutMapping("/{id}")
     public ResponseEntity<Usuario> actualizar(@PathVariable Long id, @RequestBody Usuario usuario) {
-        // Llamamos al servicio (que vamos a crear abajo) para que haga la magia
         Usuario actualizado = usuarioService.actualizarUsuario(id, usuario);
         return ResponseEntity.ok(actualizado);
     }
 
+    @Operation(summary = "Eliminar usuario", description = "Elimina un usuario del sistema por su ID")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
-        // Primero buscamos si existe para que lance la excepción 404 si no está
-        usuarioService.buscarPorId(id); 
+        usuarioService.buscarPorId(id);
         usuarioService.eliminar(id);
         return ResponseEntity.noContent().build();
     }
 
-    // Método para verificar si el usuario existe (ideal para Feign Clients)
+    @Operation(summary = "Verificar existencia (interno)",
+               description = "Usado por ms-mascotas y ms-solicitud vía Feign para verificar si un usuario existe")
     @GetMapping("/existe/{id}")
     public ResponseEntity<Boolean> verificarExistencia(@PathVariable Long id) {
         boolean existe = usuarioService.existePorId(id);
