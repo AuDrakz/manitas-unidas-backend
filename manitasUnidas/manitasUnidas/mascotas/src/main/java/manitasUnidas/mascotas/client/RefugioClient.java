@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 @FeignClient(name = "ms-refugios")
 public interface RefugioClient {
-    @GetMapping("/api/refugios/existe/{id}")
+
+    @GetMapping("/api/refugios/{id}/exists")
     boolean verificarExistencia(@PathVariable("id") Long id);
 }

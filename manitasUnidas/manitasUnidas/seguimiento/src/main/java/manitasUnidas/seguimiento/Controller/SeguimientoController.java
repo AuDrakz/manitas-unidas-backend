@@ -1,106 +1,167 @@
 package manitasUnidas.seguimiento.Controller;
 
-import jakarta.validation.Valid;
-import manitasUnidas.seguimiento.Model.Seguimiento;
-import manitasUnidas.seguimiento.Service.SeguimientoService;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import org.springframework.web.bind.annotation.*;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
+import manitasUnidas.seguimiento.Service.SeguimientoService;
+import manitasUnidas.seguimiento.dto.SeguimientoRequestDTO;
+import manitasUnidas.seguimiento.dto.SeguimientoResponseDTO;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * Controlador encargado de la gestión de seguimientos clínicos.
+ */
 @RestController
 @RequestMapping("/api/seguimientos")
-@Tag(name = "Seguimientos", description = "Gestión de seguimientos clínicos veterinarios")
+@Tag(
+        name = "Seguimientos",
+        description = "Gestión de seguimientos clínicos veterinarios"
+)
+@Slf4j
 public class SeguimientoController {
 
-    private static final Logger logger =
-            LoggerFactory.getLogger(SeguimientoController.class);
+    @Autowired
+    private SeguimientoService service;
 
-    private final SeguimientoService service;
-
-    public SeguimientoController(SeguimientoService service) {
-        this.service = service;
-    }
-
-    // CREAR SEGUIMIENTO
+    /**
+     * Registra un nuevo seguimiento.
+     */
     @PostMapping
-    @Operation(summary = "Crear seguimiento", description = "Registra un nuevo seguimiento clínico")
-    public Seguimiento crearSeguimiento(@Valid @RequestBody Seguimiento seguimiento) {
+    @Operation(summary = "Crear seguimiento")
+    public ResponseEntity<SeguimientoResponseDTO> crearSeguimiento(
+            @Valid @RequestBody SeguimientoRequestDTO dto) {
 
-        logger.info("Request: crear seguimiento fichaVetId={}", seguimiento.getFichaVetId());
+        log.info(
+                "Solicitud para crear seguimiento fichaVetId={}",
+                dto.getFichaVetId());
 
-        Seguimiento creado = service.crearSeguimiento(seguimiento);
-
-        logger.info("Seguimiento creado ID={}", creado.getId());
-
-        return creado;
+        return ResponseEntity.ok(
+                service.crearSeguimiento(dto));
     }
 
-    // LISTAR TODOS
+    /**
+     * Lista todos los seguimientos.
+     */
     @GetMapping
-    @Operation(summary = "Listar seguimientos", description = "Obtiene todos los seguimientos registrados")
-    public List<Seguimiento> listarSeguimientos() {
+    @Operation(summary = "Listar seguimientos")
+    public ResponseEntity<List<SeguimientoResponseDTO>>
+    listarSeguimientos() {
 
-        logger.info("Request: listar seguimientos");
+        log.info("Solicitud para listar seguimientos");
 
-        return service.listarSeguimientos();
+        return ResponseEntity.ok(
+                service.listarSeguimientos());
     }
 
-    // BUSCAR POR ID
+    /**
+     * Busca un seguimiento por ID.
+     */
     @GetMapping("/{id}")
-    @Operation(summary = "Obtener seguimiento por ID")
-    public Seguimiento obtenerPorId(@PathVariable Long id) {
+    @Operation(summary = "Buscar seguimiento por ID")
+    public ResponseEntity<SeguimientoResponseDTO>
+    obtenerPorId(@PathVariable Long id) {
 
-        logger.info("Request: obtener seguimiento ID={}", id);
+        log.info(
+                "Solicitud para buscar seguimiento ID={}",
+                id);
 
-        return service.obtenerPorId(id);
+        return ResponseEntity.ok(
+                service.obtenerPorId(id));
     }
 
-    // HISTORIAL CLÍNICO
+    /**
+     * Obtiene historial clínico por ficha veterinaria.
+     */
     @GetMapping("/historial/{fichaVetId}")
-    @Operation(summary = "Historial clínico por ficha veterinaria")
-    public List<Seguimiento> obtenerHistorialClinico(@PathVariable Long fichaVetId) {
+    @Operation(summary = "Obtener historial clínico")
+    public ResponseEntity<List<SeguimientoResponseDTO>>
+    obtenerHistorialClinico(
+            @PathVariable Long fichaVetId) {
 
-        logger.info("Request: historial fichaVetId={}", fichaVetId);
+        log.info(
+                "Solicitud historial fichaVetId={}",
+                fichaVetId);
 
-        return service.obtenerHistorialClinico(fichaVetId);
+        return ResponseEntity.ok(
+                service.obtenerHistorialClinico(
+                        fichaVetId));
     }
 
-    // POR ESTADO
+    /**
+     * Busca seguimientos por estado.
+     */
     @GetMapping("/estado/{estado}")
-    @Operation(summary = "Buscar por estado")
-    public List<Seguimiento> buscarPorEstado(@PathVariable String estado) {
+    @Operation(summary = "Buscar seguimientos por estado")
+    public ResponseEntity<List<SeguimientoResponseDTO>>
+    buscarPorEstado(
+            @PathVariable String estado) {
 
-        logger.info("Request: buscar por estado={}", estado);
+        log.info(
+                "Solicitud búsqueda estado={}",
+                estado);
 
-        return service.buscarPorEstado(estado);
+        return ResponseEntity.ok(
+                service.buscarPorEstado(estado));
     }
 
-    // ACTUALIZAR
+    /**
+     * Actualiza un seguimiento.
+     */
     @PutMapping("/{id}")
     @Operation(summary = "Actualizar seguimiento")
-    public Seguimiento actualizarSeguimiento(
+    public ResponseEntity<SeguimientoResponseDTO>
+    actualizarSeguimiento(
             @PathVariable Long id,
-            @Valid @RequestBody Seguimiento seguimiento) {
+            @Valid @RequestBody SeguimientoRequestDTO dto) {
 
-        logger.info("Request: actualizar seguimiento ID={}", id);
+        log.info(
+                "Solicitud actualización seguimiento ID={}",
+                id);
 
-        return service.actualizarSeguimiento(id, seguimiento);
+        return ResponseEntity.ok(
+                service.actualizarSeguimiento(
+                        id,
+                        dto));
     }
 
-    // ELIMINAR
+    /**
+     * Elimina un seguimiento.
+     */
     @DeleteMapping("/{id}")
     @Operation(summary = "Eliminar seguimiento")
-    public void eliminarSeguimiento(@PathVariable Long id) {
+    public ResponseEntity<Void>
+    eliminarSeguimiento(
+            @PathVariable Long id) {
 
-        logger.warn("Request: eliminar seguimiento ID={}", id);
+        log.warn(
+                "Solicitud eliminación seguimiento ID={}",
+                id);
 
         service.eliminarSeguimiento(id);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Verifica si existe seguimiento asociado
+     * a una ficha veterinaria.
+     */
+    @GetMapping("/existe/{fichaVetId}")
+    @Operation(summary = "Verificar existencia de seguimiento")
+    public ResponseEntity<Boolean>
+    existeFichaVet(
+            @PathVariable Long fichaVetId) {
+
+        log.info(
+                "Validando existencia fichaVetId={}",
+                fichaVetId);
+
+        return ResponseEntity.ok(
+                service.existeFichaVet(fichaVetId));
     }
 }
