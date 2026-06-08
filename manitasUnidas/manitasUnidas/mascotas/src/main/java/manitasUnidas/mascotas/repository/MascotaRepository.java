@@ -8,8 +8,9 @@ import org.springframework.stereotype.Repository;
 import manitasUnidas.mascotas.model.Mascota;
 
 @Repository
-public interface MascotaRepository extends JpaRepository<Mascota,Long>{
-    // metodo para buscar por especie
-    List<Mascota> findByEspecie(String especie);
+public interface MascotaRepository extends JpaRepository<Mascota, Long> {
 
+    List<Mascota> findByEspecieIgnoreCase(String especie);
+
+    boolean existsById(Long id);
 }

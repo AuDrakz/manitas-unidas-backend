@@ -1,8 +1,12 @@
 package manitasUnidas.refugios.controller;
 
-import manitasUnidas.refugios.model.Refugio;
-import manitasUnidas.refugios.service.RefugioService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
+import manitasUnidas.refugios.dto.RefugioRequestDTO;
+import manitasUnidas.refugios.dto.RefugioResponseDTO;
+import manitasUnidas.refugios.service.RefugioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,75 +15,90 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/refugios")
+@Slf4j
+@Tag(name = "Refugios", description = "Gestión de refugios")
 public class RefugioController {
 
     @Autowired
     private RefugioService refugioServ;
 
-    // CREAR: POST /api/refugios
     @PostMapping
-    public Refugio guardar(@Valid @RequestBody Refugio refugio) {
-        return refugioServ.guardarRefugio(refugio); // Aquí ya retorna el JSON
+    @Operation(summary = "Crear un nuevo refugio")
+    public RefugioResponseDTO crear(
+            @Valid @RequestBody RefugioRequestDTO dto) {
+
+        log.info("Solicitud para crear refugio");
+
+        return refugioServ.guardarRefugio(dto);
     }
 
-    // LISTAR TODOS: GET /api/refugios
     @GetMapping
-    public List<Refugio> listar() {
+    @Operation(summary = "Listar todos los refugios")
+    public List<RefugioResponseDTO> listar() {
+
+        log.info("Solicitud para listar refugios");
+
         return refugioServ.listarTodos();
     }
 
-    // BUSCAR POR ID: GET /api/refugios/{id}
     @GetMapping("/{id}")
-    public Refugio buscarPorId(@PathVariable Long id) {
+    @Operation(summary = "Buscar refugio por ID")
+    public RefugioResponseDTO buscarPorId(@PathVariable Long id) {
+
+        log.info("Solicitud para buscar refugio ID: {}", id);
+
         return refugioServ.buscarPorId(id);
     }
 
-    // BUSCAR POR NOMBRE: GET /api/refugios/nombre/{nombre}
     @GetMapping("/nombre/{nombre}")
-    public Refugio buscarPorNombre(@PathVariable String nombre) {
+    @Operation(summary = "Buscar refugio por nombre")
+    public RefugioResponseDTO buscarPorNombre(
+            @PathVariable String nombre) {
+
+        log.info("Solicitud para buscar refugio nombre: {}", nombre);
+
         return refugioServ.buscarPorNombre(nombre);
     }
 
-    // DISPONIBILIDAD: GET /api/refugios/disponibles
     @GetMapping("/disponibles")
-    public List<Refugio> buscarDisponibles() {
+    @Operation(summary = "Listar refugios con disponibilidad")
+    public List<RefugioResponseDTO> buscarDisponibles() {
+
+        log.info("Solicitud para listar refugios disponibles");
+
         return refugioServ.buscarConDisponibilidad();
     }
 
-    // CUPOS: GET /api/refugios/cupos/{id}
     @GetMapping("/cupos/{id}")
+    @Operation(summary = "Consultar cupos disponibles")
     public String verCupos(@PathVariable Long id) {
+
+        log.info("Solicitud para consultar cupos refugio ID: {}", id);
+
         Integer cupos = refugioServ.obtenerCuposDisponibles(id);
+
         return "El refugio cuenta con " + cupos + " cupos disponibles.";
     }
 
-
-    // ELIMINAR: DELETE /api/refugios/{id}
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
-        refugioServ.eliminarRefugio(id);
-        return ResponseEntity.noContent().build(); 
-    }
-    // @DeleteMapping("/{id}")
-    // public String eliminar(@PathVariable Long id) {
-    //     refugioServ.eliminarRefugio(id);
-    //     return "El refugio ha sido eliminado correctamente.";
-    // }
-
-    // EDITAR: PUT /api/refugios/{id}
     @PutMapping("/{id}")
-    public Refugio editar(@PathVariable Long id, @RequestBody Refugio refugio) {
-        refugio.setId(id);
-        return refugioServ.actualizarRefugio(refugio);
+    @Operation(summary = "Actualizar refugio")
+    public RefugioResponseDTO actualizar(
+            @PathVariable Long id,
+            @Valid @RequestBody RefugioRequestDTO dto) {
+
+        log.info("Solicitud para actualizar refugio ID: {}", id);
+
+        return refugioServ.actualizarRefugio(id, dto);
     }
 
-    // COMUNICACIÓN ENTRE MICROSERVICIOS: GET /api/refugios/existe/{id}
-    @GetMapping("/existe/{id}")
-    public boolean verificarExistencia(@PathVariable Long id) {
-        try {
-            return refugioServ.buscarPorId(id) != null;
-        } catch (Exception e) {
-            return false;
-        }
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Eliminar refugio")
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+
+        log.info("Solicitud para eliminar refugio ID: {}", id);
+
+        refugioServ.eliminarRefugio(id);
+
+        return ResponseEntity.noContent().build();
     }
 }

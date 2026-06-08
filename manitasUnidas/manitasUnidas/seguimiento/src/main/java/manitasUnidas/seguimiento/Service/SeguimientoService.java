@@ -1,109 +1,222 @@
 package manitasUnidas.seguimiento.Service;
 
+import lombok.extern.slf4j.Slf4j;
 import manitasUnidas.seguimiento.Model.Seguimiento;
 import manitasUnidas.seguimiento.Repository.SeguimientoRepository;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import manitasUnidas.seguimiento.dto.SeguimientoRequestDTO;
+import manitasUnidas.seguimiento.dto.SeguimientoResponseDTO;
+import manitasUnidas.seguimiento.exception.ResourceNotFoundException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
+/**
+ * Servicio encargado de la gestión de seguimientos clínicos.
+ *
+ * Permite registrar, consultar, actualizar y eliminar
+ * seguimientos asociados a fichas veterinarias.
+ */
 @Service
+@Slf4j
 public class SeguimientoService {
 
-    private static final Logger logger =
-            LoggerFactory.getLogger(SeguimientoService.class);
+    @Autowired
+    private SeguimientoRepository repository;
 
-    private final SeguimientoRepository repository;
+    /**
+     * Registra un nuevo seguimiento.
+     *
+     * @param dto datos recibidos desde la petición
+     * @return seguimiento creado
+     */
+    public SeguimientoResponseDTO crearSeguimiento(
+            SeguimientoRequestDTO dto) {
 
-    public SeguimientoService(SeguimientoRepository repository) {
-        this.repository = repository;
-    }
+        log.info(
+                "Creando nuevo seguimiento para fichaVetId={}",
+                dto.getFichaVetId());
 
-    // CREAR SEGUIMIENTO
-    public Seguimiento crearSeguimiento(Seguimiento seguimiento) {
+        Seguimiento seguimiento = new Seguimiento();
 
-        logger.info("Creando nuevo seguimiento para fichaVetId={}", seguimiento.getFichaVetId());
+        seguimiento.setFichaVetId(dto.getFichaVetId());
+        seguimiento.setEstado(dto.getEstado());
+        seguimiento.setComentario(dto.getComentario());
 
         Seguimiento saved = repository.save(seguimiento);
 
-        logger.info("Seguimiento creado con ID={}", saved.getId());
+        log.info("Seguimiento creado con ID={}", saved.getId());
 
-        return saved;
+        return mapToDTO(saved);
     }
 
-    // LISTAR TODOS LOS SEGUIMIENTOS
-    public List<Seguimiento> listarSeguimientos() {
+    /**
+     * Obtiene todos los seguimientos.
+     *
+     * @return lista de seguimientos
+     */
+    public List<SeguimientoResponseDTO> listarSeguimientos() {
 
-        logger.info("Listando todos los seguimientos");
+        log.info("Listando todos los seguimientos");
 
-        return repository.findAll();
+        return repository.findAll()
+                .stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
     }
 
-    // BUSCAR POR ID
-    public Seguimiento obtenerPorId(Long id) {
+    /**
+     * Busca un seguimiento por ID.
+     *
+     * @param id identificador
+     * @return seguimiento encontrado
+     */
+    public SeguimientoResponseDTO obtenerPorId(Long id) {
 
-        logger.info("Buscando seguimiento con ID={}", id);
+        log.info("Buscando seguimiento con ID={}", id);
 
-        return repository.findById(id)
+        Seguimiento seguimiento = repository.findById(id)
                 .orElseThrow(() -> {
-                    logger.error("Seguimiento no encontrado con ID={}", id);
-                    return new RuntimeException("Seguimiento no encontrado");
+                    log.error(
+                            "Seguimiento no encontrado con ID={}",
+                            id);
+
+                    return new ResourceNotFoundException(
+                            "Seguimiento no encontrado con ID: " + id);
                 });
+
+        return mapToDTO(seguimiento);
     }
 
-    // HISTORIAL CLINICO
-    public List<Seguimiento> obtenerHistorialClinico(Long fichaVetId) {
+    /**
+     * Obtiene el historial clínico asociado
+     * a una ficha veterinaria.
+     *
+     * @param fichaVetId identificador de ficha
+     * @return historial completo
+     */
+    public List<SeguimientoResponseDTO>
+    obtenerHistorialClinico(Long fichaVetId) {
 
-        logger.info("Consultando historial clínico para fichaVetId={}", fichaVetId);
+        log.info(
+                "Consultando historial clínico para fichaVetId={}",
+                fichaVetId);
 
-        return repository.findByFichaVetIdOrderByIdDesc(fichaVetId);
+        return repository.findByFichaVetIdOrderByIdDesc(fichaVetId)
+                .stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
     }
 
-    // BUSCAR POR ESTADO
-    public List<Seguimiento> buscarPorEstado(String estado) {
+    /**
+     * Busca seguimientos por estado.
+     *
+     * @param estado estado a consultar
+     * @return lista de seguimientos
+     */
+    public List<SeguimientoResponseDTO>
+    buscarPorEstado(String estado) {
 
-        logger.info("Buscando seguimientos por estado={}", estado);
+        log.info("Buscando seguimientos por estado={}", estado);
 
-        return repository.findByEstadoOrderByIdDesc(estado);
+        return repository.findByEstadoOrderByIdDesc(estado)
+                .stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
     }
 
-    // VALIDAR EXISTENCIA
+    /**
+     * Verifica si existen seguimientos asociados
+     * a una ficha veterinaria.
+     *
+     * @param fichaVetId identificador de ficha
+     * @return true si existe
+     */
     public boolean existeFichaVet(Long fichaVetId) {
 
-        logger.info("Validando existencia de fichaVetId={}", fichaVetId);
+        log.info(
+                "Validando existencia de fichaVetId={}",
+                fichaVetId);
 
         return repository.existsByFichaVetId(fichaVetId);
     }
 
-    // ACTUALIZAR
-    public Seguimiento actualizarSeguimiento(Long id, Seguimiento nuevo) {
+    /**
+     * Actualiza un seguimiento existente.
+     *
+     * @param id identificador
+     * @param dto nuevos datos
+     * @return seguimiento actualizado
+     */
+    public SeguimientoResponseDTO actualizarSeguimiento(
+            Long id,
+            SeguimientoRequestDTO dto) {
 
-        logger.info("Actualizando seguimiento ID={}", id);
+        log.info("Actualizando seguimiento ID={}", id);
 
         Seguimiento existente = repository.findById(id)
                 .orElseThrow(() -> {
-                    logger.error("No existe seguimiento con ID={}", id);
-                    return new RuntimeException("Seguimiento no encontrado");
+                    log.error(
+                            "No existe seguimiento con ID={}",
+                            id);
+
+                    return new ResourceNotFoundException(
+                            "Seguimiento no encontrado con ID: " + id);
                 });
 
-        existente.setFichaVetId(nuevo.getFichaVetId());
-        existente.setEstado(nuevo.getEstado());
-        existente.setComentario(nuevo.getComentario());
+        existente.setFichaVetId(dto.getFichaVetId());
+        existente.setEstado(dto.getEstado());
+        existente.setComentario(dto.getComentario());
 
         Seguimiento updated = repository.save(existente);
 
-        logger.info("Seguimiento actualizado ID={}", updated.getId());
+        log.info(
+                "Seguimiento actualizado correctamente ID={}",
+                updated.getId());
 
-        return updated;
+        return mapToDTO(updated);
     }
 
-    // ELIMINAR
+    /**
+     * Elimina un seguimiento.
+     *
+     * @param id identificador del seguimiento
+     */
     public void eliminarSeguimiento(Long id) {
 
-        logger.warn("Eliminando seguimiento ID={}", id);
+        log.warn("Eliminando seguimiento ID={}", id);
 
-        repository.deleteById(id);
+        Seguimiento seguimiento = repository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Seguimiento no encontrado con ID: " + id));
+
+        repository.delete(seguimiento);
+
+        log.info("Seguimiento eliminado correctamente");
+    }
+
+    /**
+     * Convierte una entidad Seguimiento
+     * a SeguimientoResponseDTO.
+     *
+     * @param seguimiento entidad
+     * @return DTO de respuesta
+     */
+    private SeguimientoResponseDTO mapToDTO(
+            Seguimiento seguimiento) {
+
+        SeguimientoResponseDTO dto =
+                new SeguimientoResponseDTO();
+
+        dto.setId(seguimiento.getId());
+        dto.setFichaVetId(seguimiento.getFichaVetId());
+        dto.setEstado(seguimiento.getEstado());
+        dto.setComentario(seguimiento.getComentario());
+        dto.setFechasActualizacion(
+                seguimiento.getFechasActualizacion());
+
+        return dto;
     }
 }

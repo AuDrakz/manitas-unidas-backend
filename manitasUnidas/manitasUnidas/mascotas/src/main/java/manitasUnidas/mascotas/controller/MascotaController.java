@@ -2,7 +2,6 @@ package manitasUnidas.mascotas.controller;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,73 +9,65 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import manitasUnidas.mascotas.dto.MascotaRequestDTO;
-import manitasUnidas.mascotas.model.Mascota;
+import manitasUnidas.mascotas.dto.MascotaResponseDTO;
 import manitasUnidas.mascotas.service.MascotaService;
 
-@Slf4j   
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+@Slf4j
 @RestController
 @RequestMapping("/api/mascotas")
+@Tag(name = "Mascotas", description = "Gestión de mascotas")
 public class MascotaController {
 
-    @Autowired
-    private MascotaService mascotaService;
+    private final MascotaService mascotaService;
 
-    // GET /api/mascotas
-    @GetMapping
-    public List<Mascota> listar() {
-        log.info("[MascotaController] GET /api/mascotas - listar todas");
-        return mascotaService.obtenerTodas();
+    public MascotaController(MascotaService mascotaService) {
+        this.mascotaService = mascotaService;
     }
 
-    // GET /api/mascotas/{id}
+    @GetMapping
+    public ResponseEntity<List<MascotaResponseDTO>> listar() {
+        log.info("Listando todas las mascotas");
+        return ResponseEntity.ok(mascotaService.obtenerTodas());
+    }
+
     @GetMapping("/{id}")
-    public ResponseEntity<Mascota> buscarPorId(@PathVariable Long id) {
-        log.info("[MascotaController] GET /api/mascotas/{}", id);
+    public ResponseEntity<MascotaResponseDTO> buscarPorId(@PathVariable Long id) {
+        log.info("Buscando mascota id={}", id);
         return ResponseEntity.ok(mascotaService.buscarPorId(id));
     }
 
-    // POST /api/mascotas  --  ahora recibe MascotaRequestDTO, no la entidad
     @PostMapping
-    public ResponseEntity<Mascota> guardar(@Valid @RequestBody MascotaRequestDTO dto) {
-        log.info("[MascotaController] POST /api/mascotas - nombre={}", dto.getNombre());
-        Mascota nuevaMascota = mascotaService.registrarMascota(dto);
-        return new ResponseEntity<>(nuevaMascota, HttpStatus.CREATED);
+    public ResponseEntity<MascotaResponseDTO> guardar(@Valid @RequestBody MascotaRequestDTO dto) {
+        log.info("Creando mascota nombre={}", dto.getNombre());
+        return new ResponseEntity<>(mascotaService.registrarMascota(dto), HttpStatus.CREATED);
     }
 
-    // PUT /api/mascotas/{id}  --  ahora recibe MascotaRequestDTO, no la entidad
     @PutMapping("/{id}")
-    public ResponseEntity<Mascota> actualizar(@PathVariable Long id,
-        @Valid @RequestBody MascotaRequestDTO dto) {
-        log.info("[MascotaController] PUT /api/mascotas/{}", id);
-        Mascota actualizada = mascotaService.actualizarMascota(id, dto);
-        return ResponseEntity.ok(actualizada);
+    public ResponseEntity<MascotaResponseDTO> actualizar(
+            @PathVariable Long id,
+            @Valid @RequestBody MascotaRequestDTO dto) {
+        log.info("Actualizando mascota id={}", id);
+        return ResponseEntity.ok(mascotaService.actualizarMascota(id, dto));
     }
 
-    // DELETE /api/mascotas/{id}
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
-        log.info("[MascotaController] DELETE /api/mascotas/{}", id);
+        log.info("Eliminando mascota id={}", id);
         mascotaService.eliminar(id);
         return ResponseEntity.noContent().build();
     }
 
-    // GET /api/mascotas/existe/{id}  -- usado por ms-solicitud via Feign
-    @GetMapping("/existe/{id}")
-    public boolean verificarExistencia(@PathVariable Long id) {
-        log.info("[MascotaController] Verificando existencia de mascota ID={}", id);
-        try {
-            mascotaService.buscarPorId(id);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+    @GetMapping("/{id}/exists")
+    public ResponseEntity<Boolean> verificarExistencia(@PathVariable Long id) {
+        log.info("Verificando existencia id={}", id);
+        return ResponseEntity.ok(mascotaService.existePorId(id));
     }
 
-    // GET /api/mascotas/estado/{id}
-    @GetMapping("/estado/{id}")
+    @GetMapping("/{id}/estado")
     public ResponseEntity<String> obtenerEstado(@PathVariable Long id) {
-        log.info("[MascotaController] Consultando estado de mascota ID={}", id);
-        Mascota m = mascotaService.buscarPorId(id);
-        return ResponseEntity.ok(m.getEstado());
+        log.info("Consultando estado id={}", id);
+        return ResponseEntity.ok(mascotaService.obtenerEstado(id));
     }
 }
