@@ -14,7 +14,7 @@ public class SecurityConfig {
         return http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/**").permitAll() // Todo lo que empiece con /auth es libre
+                .requestMatchers("/auth/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/doc/**").permitAll() // Todo lo que empiece con /auth es libre
                 .anyRequest().authenticated()
             )
             .build();
