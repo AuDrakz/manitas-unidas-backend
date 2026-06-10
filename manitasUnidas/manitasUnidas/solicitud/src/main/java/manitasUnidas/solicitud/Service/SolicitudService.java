@@ -8,7 +8,7 @@ import manitasUnidas.solicitud.model.Solicitud;
 import manitasUnidas.solicitud.repository.SolicitudRepository;
 import manitasUnidas.solicitud.client.BlackListClient;
 import manitasUnidas.solicitud.client.MascotaClient;
-import manitasUnidas.solicitud.client.UsuarioClient;   // <-- NUEVO
+import manitasUnidas.solicitud.client.UsuarioClient;   
 import manitasUnidas.solicitud.dto.SolicitudRequestDTO;
 import manitasUnidas.solicitud.exception.SolicitudRechazadaException;
 import manitasUnidas.solicitud.exception.ResourceNotFoundException;
@@ -16,7 +16,7 @@ import manitasUnidas.solicitud.exception.ResourceNotFoundException;
 import java.time.LocalDate;
 import java.util.List;
 
-@Slf4j   // <-- AGREGA ESTE
+@Slf4j   
 @Service
 public class SolicitudService {
 
