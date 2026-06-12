@@ -27,7 +27,7 @@ public class BlackListController {
     private BlackListService service;
 
     @Operation(
-        summary = "📋 Listar registros de la Lista Negra", 
+        summary = " Listar registros de la Lista Negra", 
         description = "Retorna un listado con todas las fichas de usuarios que se encuentran bloqueados actualmente."
     )
     @ApiResponse(responseCode = "200", description = "¡Éxito! Lista de bloqueos obtenida de forma correcta.")
@@ -39,7 +39,7 @@ public class BlackListController {
     }
 
     @Operation(
-        summary = "🔍 Buscar un bloqueo por su ID", 
+        summary = " Buscar un bloqueo por su ID", 
         description = "Ingresa el identificador numérico único (ID) para revisar el motivo y detalles de un bloqueo específico."
     )
     @ApiResponses(value = {
@@ -53,7 +53,7 @@ public class BlackListController {
     }
 
     @Operation(
-        summary = "🛡️ Verificar si un RUT está bloqueado", 
+        summary = " Verificar si un RUT está bloqueado", 
         description = "Consulta rápida para saber si un usuario tiene el acceso restringido ingresando su RUT. Devuelve 'true' si está bloqueado o 'false' si tiene permitido el paso."
     )
     @ApiResponse(responseCode = "200", description = "Consulta completada. Retorna un valor verdadero o falso (true/false).")
@@ -68,7 +68,7 @@ public class BlackListController {
     }
 
     @Operation(
-        summary = "🚫 Agregar un usuario a la Lista Negra", 
+        summary = " Agregar un usuario a la Lista Negra", 
         description = "Registra un nuevo bloqueo ingresando los datos correspondientes en el formulario. El RUT y el motivo son obligatorios."
     )
     @ApiResponses(value = {
@@ -82,7 +82,7 @@ public class BlackListController {
     }
 
     @Operation(
-        summary = "🔄 Modificar los datos de un bloqueo", 
+        summary = " Modificar los datos de un bloqueo", 
         description = "Permite actualizar el motivo, la fecha o la información de un registro existente utilizando su ID."
     )
     @ApiResponses(value = {
@@ -97,7 +97,7 @@ public class BlackListController {
     }
 
     @Operation(
-        summary = "🔓 Quitar de la Lista Negra (Desbloquear)", 
+        summary = " Quitar de la Lista Negra (Desbloquear)", 
         description = "Elimina permanentemente la restricción de un usuario en el sistema mediante su ID para restablecer su acceso normal."
     )
     @ApiResponses(value = {

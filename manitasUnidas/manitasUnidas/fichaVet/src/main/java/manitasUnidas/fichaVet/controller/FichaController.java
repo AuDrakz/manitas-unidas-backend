@@ -14,13 +14,10 @@ import manitasUnidas.fichaVet.service.FichaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-
-
 @Tag(
     name = "Ficha Veterinaria",
     description = "Operaciones relacionadas con fichas médicas de mascotas"
 )
-
 
 @Slf4j
 @RestController
