@@ -1,11 +1,12 @@
-package manitasUnidas.seguimiento.Service;
+package manitasUnidas.seguimiento.service;
 
 import lombok.extern.slf4j.Slf4j;
-import manitasUnidas.seguimiento.Model.Seguimiento;
-import manitasUnidas.seguimiento.Repository.SeguimientoRepository;
 import manitasUnidas.seguimiento.dto.SeguimientoRequestDTO;
 import manitasUnidas.seguimiento.dto.SeguimientoResponseDTO;
 import manitasUnidas.seguimiento.exception.ResourceNotFoundException;
+import manitasUnidas.seguimiento.model.Seguimiento;
+import manitasUnidas.seguimiento.repository.SeguimientoRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

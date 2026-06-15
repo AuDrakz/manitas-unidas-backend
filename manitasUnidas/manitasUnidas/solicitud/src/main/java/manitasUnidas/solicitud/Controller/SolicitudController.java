@@ -6,16 +6,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import manitasUnidas.solicitud.model.Solicitud;
 import manitasUnidas.solicitud.service.SolicitudService;
 import manitasUnidas.solicitud.dto.SolicitudRequestDTO;
-
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.CollectionModel;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 import java.util.List;
 
-@Tag(name = "Solicitudes", description = "Gestión de solicitudes de adopción de mascotas")
+@Tag(name = "Solicitudes", description = "Gestion de solicitudes de adopcion")
 @Slf4j
 @RestController
 @RequestMapping("/api/solicitudes")
@@ -24,42 +25,46 @@ public class SolicitudController {
     @Autowired
     private SolicitudService service;
 
-    @Operation(summary = "Listar todas las solicitudes", description = "Retorna la lista completa de solicitudes de adopción")
+    private EntityModel<Solicitud> toModel(Solicitud s) {
+        return EntityModel.of(s,
+            linkTo(methodOn(SolicitudController.class).obtenerPorId(s.getId())).withSelfRel(),
+            linkTo(methodOn(SolicitudController.class).listar()).withRel("todas-las-solicitudes"),
+            linkTo(methodOn(SolicitudController.class).actualizarEstado(s.getId(), "APROBADA")).withRel("actualizar-estado"),
+            linkTo(methodOn(SolicitudController.class).eliminar(s.getId())).withRel("eliminar")
+        );
+    }
+
+    @Operation(summary = "Listar todas las solicitudes")
     @GetMapping
-    public List<Solicitud> listar() {
+    public CollectionModel<EntityModel<Solicitud>> listar() {
         log.info("[SolicitudController] GET /api/solicitudes");
-        return service.obtenerTodas();
+        List<EntityModel<Solicitud>> lista = service.obtenerTodas().stream().map(this::toModel).toList();
+        return CollectionModel.of(lista, linkTo(methodOn(SolicitudController.class).listar()).withSelfRel());
     }
 
-    @Operation(summary = "Buscar solicitud por ID", description = "Retorna los datos de una solicitud específica")
+    @Operation(summary = "Buscar solicitud por ID")
     @GetMapping("/{id}")
-    public ResponseEntity<Solicitud> obtenerPorId(@PathVariable Long id) {
+    public EntityModel<Solicitud> obtenerPorId(@PathVariable Long id) {
         log.info("[SolicitudController] GET /api/solicitudes/{}", id);
-        return ResponseEntity.ok(service.buscarPorId(id));
+        return toModel(service.buscarPorId(id));
     }
 
-    @Operation(summary = "Crear nueva solicitud",
-               description = "Crea una solicitud validando: que el adoptante exista, no esté en lista negra, " +
-                             "la mascota esté disponible y no tenga otra solicitud pendiente")
+    @Operation(summary = "Crear nueva solicitud")
     @PostMapping
-    public ResponseEntity<Solicitud> crear(@Valid @RequestBody SolicitudRequestDTO dto) {
+    public ResponseEntity<EntityModel<Solicitud>> crear(@Valid @RequestBody SolicitudRequestDTO dto) {
         log.info("[SolicitudController] POST /api/solicitudes - adoptante={}", dto.getIdAdoptante());
-        Solicitud nueva = service.crearSolicitud(dto);
-        return new ResponseEntity<>(nueva, HttpStatus.CREATED);
+        return new ResponseEntity<>(toModel(service.crearSolicitud(dto)), HttpStatus.CREATED);
     }
 
-    @Operation(summary = "Actualizar estado de solicitud",
-               description = "Cambia el estado de una solicitud (PENDIENTE, APROBADA, RECHAZADA)")
+    @Operation(summary = "Actualizar estado (PENDIENTE / APROBADA / RECHAZADA)")
     @PutMapping("/{id}/estado")
-    public ResponseEntity<Solicitud> actualizarEstado(@PathVariable Long id,
-                                                      @RequestBody String nuevoEstado) {
+    public EntityModel<Solicitud> actualizarEstado(@PathVariable Long id, @RequestBody String nuevoEstado) {
         String estadoLimpio = nuevoEstado.replace("\"", "").trim();
-        log.info("[SolicitudController] PUT /api/solicitudes/{}/estado - nuevoEstado={}", id, estadoLimpio);
-        Solicitud actualizada = service.cambiarEstado(id, estadoLimpio);
-        return ResponseEntity.ok(actualizada);
+        log.info("[SolicitudController] PUT /api/solicitudes/{}/estado - {}", id, estadoLimpio);
+        return toModel(service.cambiarEstado(id, estadoLimpio));
     }
 
-    @Operation(summary = "Eliminar solicitud", description = "Elimina una solicitud del sistema por su ID")
+    @Operation(summary = "Eliminar solicitud")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         log.info("[SolicitudController] DELETE /api/solicitudes/{}", id);

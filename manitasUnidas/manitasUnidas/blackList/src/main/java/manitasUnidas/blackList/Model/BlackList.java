@@ -1,4 +1,4 @@
-package manitasUnidas.blackList.Model;
+package manitasUnidas.blackList.model;
 
 import java.time.LocalDate;
 

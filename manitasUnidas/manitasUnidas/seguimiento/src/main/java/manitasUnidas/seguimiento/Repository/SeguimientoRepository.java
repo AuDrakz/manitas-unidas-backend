@@ -1,8 +1,9 @@
-package manitasUnidas.seguimiento.Repository;
+package manitasUnidas.seguimiento.repository;
 
-import manitasUnidas.seguimiento.Model.Seguimiento;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
+import manitasUnidas.seguimiento.model.Seguimiento;
 
 import java.util.List;
 

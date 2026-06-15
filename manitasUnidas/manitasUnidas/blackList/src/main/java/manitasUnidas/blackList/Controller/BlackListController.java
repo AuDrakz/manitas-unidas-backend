@@ -1,4 +1,4 @@
-package manitasUnidas.blackList.Controller;
+package manitasUnidas.blackList.controller;
 
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -6,103 +6,91 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
-
-import manitasUnidas.blackList.Model.BlackList;
-import manitasUnidas.blackList.Service.BlackListService;
-
-// Importaciones oficiales de OpenAPI/Swagger según la guía Duoc
+import manitasUnidas.blackList.model.BlackList;
+import manitasUnidas.blackList.service.BlackListService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.CollectionModel;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
 @RestController
 @RequestMapping("/api/blacklist")
-@Tag(name = "Módulo de Lista Negra (Blacklist)", description = "Endpoints para controlar la restricción y el bloqueo de acceso de usuarios en el sistema.")
+@Tag(name = "Modulo de Lista Negra (Blacklist)", description = "Endpoints para controlar la restriccion y el bloqueo de acceso de usuarios.")
 public class BlackListController {
 
     @Autowired
     private BlackListService service;
 
-    @Operation(
-        summary = " Listar registros de la Lista Negra", 
-        description = "Retorna un listado con todas las fichas de usuarios que se encuentran bloqueados actualmente."
-    )
-    @ApiResponse(responseCode = "200", description = "¡Éxito! Lista de bloqueos obtenida de forma correcta.")
-    @GetMapping
-    public ResponseEntity<List<BlackList>> listar() {
-        // CORREGIDO: Llama exactamente al método de tu servicio sin errores de tipeo
-        List<BlackList> lista = service.obtenerTodos(); 
-        return ResponseEntity.ok(lista);
+    private EntityModel<BlackList> toModel(BlackList bl) {
+        return EntityModel.of(bl,
+            linkTo(methodOn(BlackListController.class).buscarPorId(bl.getId())).withSelfRel(),
+            linkTo(methodOn(BlackListController.class).listar()).withRel("todos-los-bloqueos"),
+            linkTo(methodOn(BlackListController.class).eliminar(bl.getId())).withRel("desbloquear")
+        );
     }
 
-    @Operation(
-        summary = " Buscar un bloqueo por su ID", 
-        description = "Ingresa el identificador numérico único (ID) para revisar el motivo y detalles de un bloqueo específico."
-    )
+    @Operation(summary = "Listar registros de la Lista Negra")
+    @ApiResponse(responseCode = "200", description = "Lista de bloqueos obtenida correctamente.")
+    @GetMapping
+    public CollectionModel<EntityModel<BlackList>> listar() {
+        List<EntityModel<BlackList>> lista = service.obtenerTodos().stream().map(this::toModel).toList();
+        return CollectionModel.of(lista, linkTo(methodOn(BlackListController.class).listar()).withSelfRel());
+    }
+
+    @Operation(summary = "Buscar un bloqueo por su ID")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "¡Registro de bloqueo localizado con éxito!",
+        @ApiResponse(responseCode = "200", description = "Registro localizado.",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = BlackList.class))),
-        @ApiResponse(responseCode = "404", description = "No encontrado: El ID consultado no figura en la lista negra.")
+        @ApiResponse(responseCode = "404", description = "ID no encontrado en lista negra.")
     })
     @GetMapping("/{id}")
-    public ResponseEntity<BlackList> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(service.obtenerPorId(id));
+    public EntityModel<BlackList> buscarPorId(@PathVariable Long id) {
+        return toModel(service.obtenerPorId(id));
     }
 
-    @Operation(
-        summary = " Verificar si un RUT está bloqueado", 
-        description = "Consulta rápida para saber si un usuario tiene el acceso restringido ingresando su RUT. Devuelve 'true' si está bloqueado o 'false' si tiene permitido el paso."
-    )
-    @ApiResponse(responseCode = "200", description = "Consulta completada. Retorna un valor verdadero o falso (true/false).")
+    @Operation(summary = "Verificar si un RUT esta bloqueado")
+    @ApiResponse(responseCode = "200", description = "Retorna true/false.")
     @GetMapping("/verificar/{rut}")
     public ResponseEntity<Boolean> estaBloqueado(@PathVariable String rut) {
         try {
-            service.buscarPorRut(rut); 
-            return ResponseEntity.ok(true); 
+            service.buscarPorRut(rut);
+            return ResponseEntity.ok(true);
         } catch (Exception e) {
-            return ResponseEntity.ok(false); 
+            return ResponseEntity.ok(false);
         }
     }
 
-    @Operation(
-        summary = " Agregar un usuario a la Lista Negra", 
-        description = "Registra un nuevo bloqueo ingresando los datos correspondientes en el formulario. El RUT y el motivo son obligatorios."
-    )
+    @Operation(summary = "Agregar un usuario a la Lista Negra")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "¡Usuario agregado a la lista negra exitosamente!",
+        @ApiResponse(responseCode = "201", description = "Usuario agregado exitosamente.",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = BlackList.class))),
-        @ApiResponse(responseCode = "400", description = "Error de envío: Los datos del formulario contienen inconsistencias o faltan campos obligatorios.")
+        @ApiResponse(responseCode = "400", description = "Datos invalidos.")
     })
     @PostMapping
-    public ResponseEntity<BlackList> agregar(@Valid @RequestBody BlackList registro) {
-        return new ResponseEntity<>(service.bloquearUsuario(registro), HttpStatus.CREATED);
+    public ResponseEntity<EntityModel<BlackList>> agregar(@Valid @RequestBody BlackList registro) {
+        return new ResponseEntity<>(toModel(service.bloquearUsuario(registro)), HttpStatus.CREATED);
     }
 
-    @Operation(
-        summary = " Modificar los datos de un bloqueo", 
-        description = "Permite actualizar el motivo, la fecha o la información de un registro existente utilizando su ID."
-    )
+    @Operation(summary = "Modificar los datos de un bloqueo")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "¡Registro de lista negra actualizado con éxito!",
+        @ApiResponse(responseCode = "200", description = "Registro actualizado.",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = BlackList.class))),
-        @ApiResponse(responseCode = "404", description = "No se pudo modificar: El ID especificado no existe en el sistema.")
+        @ApiResponse(responseCode = "404", description = "ID no encontrado.")
     })
     @PutMapping("/{id}")
-    public ResponseEntity<BlackList> actualizar(@PathVariable Long id, @RequestBody BlackList blackList) {
-        BlackList actualizado = service.actualizarBlackList(id, blackList);
-        return ResponseEntity.ok(actualizado);
+    public EntityModel<BlackList> actualizar(@PathVariable Long id, @RequestBody BlackList blackList) {
+        return toModel(service.actualizarBlackList(id, blackList));
     }
 
-    @Operation(
-        summary = " Quitar de la Lista Negra (Desbloquear)", 
-        description = "Elimina permanentemente la restricción de un usuario en el sistema mediante su ID para restablecer su acceso normal."
-    )
+    @Operation(summary = "Quitar de la Lista Negra (Desbloquear)")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "204", description = "¡Usuario desbloqueado con éxito! Registro removido correctamente."),
-        @ApiResponse(responseCode = "404", description = "No se pudo remover: El ID especificado no fue encontrado en los registros.")
+        @ApiResponse(responseCode = "204", description = "Usuario desbloqueado."),
+        @ApiResponse(responseCode = "404", description = "ID no encontrado.")
     })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {

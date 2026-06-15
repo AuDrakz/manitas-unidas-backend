@@ -1,4 +1,4 @@
-package manitasUnidas.seguimiento.Model;
+package manitasUnidas.seguimiento.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;

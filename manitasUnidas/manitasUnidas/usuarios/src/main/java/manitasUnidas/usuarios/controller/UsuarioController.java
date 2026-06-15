@@ -13,41 +13,60 @@ import jakarta.validation.Valid;
 import manitasUnidas.usuarios.model.Usuario;
 import manitasUnidas.usuarios.service.UsuarioService;
 
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.CollectionModel;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
+
 @Tag(name = "Usuarios", description = "Gestión de usuarios del sistema de adopción")
 @RestController
 @RequestMapping("/api/usuarios")
 public class UsuarioController {
 
     @Autowired
+    
     private UsuarioService usuarioService;
 
-    @Operation(summary = "Listar todos los usuarios", description = "Retorna la lista completa de usuarios registrados")
+    private EntityModel<Usuario> toModel(Usuario usuario) {
+        return EntityModel.of(usuario,
+            linkTo(methodOn(UsuarioController.class).buscarPorId(usuario.getId())).withSelfRel(),
+            linkTo(methodOn(UsuarioController.class).listar()).withRel("todos-los-usuarios"),
+            linkTo(methodOn(UsuarioController.class).eliminar(usuario.getId())).withRel("eliminar"),
+            linkTo(methodOn(UsuarioController.class).verificarExistencia(usuario.getId())).withRel("verificar-existencia")
+        );
+    }
+
+    @Operation(summary = "Listar todos los usuarios")
     @GetMapping
-    public List<Usuario> listar() {
-        return usuarioService.obtenerTodos();
+    public CollectionModel<EntityModel<Usuario>> listar() {
+        List<EntityModel<Usuario>> usuarios = usuarioService.obtenerTodos()
+                .stream()
+                .map(this::toModel)
+                .toList();
+
+        return CollectionModel.of(usuarios,
+                linkTo(methodOn(UsuarioController.class).listar()).withSelfRel());
     }
 
-    @Operation(summary = "Buscar usuario por ID", description = "Retorna los datos de un usuario específico")
+    @Operation(summary = "Buscar usuario por ID")
     @GetMapping("/{id}")
-    public ResponseEntity<Usuario> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(usuarioService.buscarPorId(id));
+    public EntityModel<Usuario> buscarPorId(@PathVariable Long id) {
+        return toModel(usuarioService.buscarPorId(id));
     }
 
-    @Operation(summary = "Registrar nuevo usuario",
-               description = "Crea un nuevo usuario. Valida campos obligatorios como nombre, correo y RUT")
+    @Operation(summary = "Registrar nuevo usuario")
     @PostMapping
-    public ResponseEntity<Usuario> guardar(@Valid @RequestBody Usuario usuario) {
-        return new ResponseEntity<>(usuarioService.registrarUsuario(usuario), HttpStatus.CREATED);
+    public ResponseEntity<EntityModel<Usuario>> guardar(@Valid @RequestBody Usuario usuario) {
+        EntityModel<Usuario> model = toModel(usuarioService.registrarUsuario(usuario));
+        return new ResponseEntity<>(model, HttpStatus.CREATED);
     }
 
-    @Operation(summary = "Actualizar usuario", description = "Actualiza los datos de un usuario existente")
+    @Operation(summary = "Actualizar usuario")
     @PutMapping("/{id}")
-    public ResponseEntity<Usuario> actualizar(@PathVariable Long id, @RequestBody Usuario usuario) {
-        Usuario actualizado = usuarioService.actualizarUsuario(id, usuario);
-        return ResponseEntity.ok(actualizado);
+    public EntityModel<Usuario> actualizar(@PathVariable Long id, @RequestBody Usuario usuario) {
+        return toModel(usuarioService.actualizarUsuario(id, usuario));
     }
 
-    @Operation(summary = "Eliminar usuario", description = "Elimina un usuario del sistema por su ID")
+    @Operation(summary = "Eliminar usuario")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         usuarioService.buscarPorId(id);
@@ -55,11 +74,9 @@ public class UsuarioController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Verificar existencia (interno)",
-               description = "Usado por ms-mascotas y ms-solicitud vía Feign para verificar si un usuario existe")
+    @Operation(summary = "Verificar existencia (interno Feign)")
     @GetMapping("/existe/{id}")
     public ResponseEntity<Boolean> verificarExistencia(@PathVariable Long id) {
-        boolean existe = usuarioService.existePorId(id);
-        return ResponseEntity.ok(existe);
+        return ResponseEntity.ok(usuarioService.existePorId(id));
     }
 }

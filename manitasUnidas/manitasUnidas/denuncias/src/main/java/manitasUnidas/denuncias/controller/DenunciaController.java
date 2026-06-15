@@ -6,13 +6,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.CollectionModel;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 import java.util.List;
 
-@Tag(name = "Denuncias", description = "Gestión de denuncias por maltrato o abandono animal")
+@Tag(name = "Denuncias", description = "Gestion de denuncias por maltrato o abandono animal")
 @RestController
 @RequestMapping("/api/denuncias")
 public class DenunciaController {
@@ -20,34 +21,40 @@ public class DenunciaController {
     @Autowired
     private DenunciaService service;
 
-    @Operation(summary = "Listar todas las denuncias", description = "Retorna la lista completa de denuncias registradas")
+    private EntityModel<Denuncia> toModel(Denuncia d) {
+        return EntityModel.of(d,
+            linkTo(methodOn(DenunciaController.class).obtenerPorId(d.getId())).withSelfRel(),
+            linkTo(methodOn(DenunciaController.class).listar()).withRel("todas-las-denuncias"),
+            linkTo(methodOn(DenunciaController.class).eliminar(d.getId())).withRel("eliminar")
+        );
+    }
+
+    @Operation(summary = "Listar todas las denuncias")
     @GetMapping
-    public List<Denuncia> listar() {
-        return service.listarTodas();
+    public CollectionModel<EntityModel<Denuncia>> listar() {
+        List<EntityModel<Denuncia>> lista = service.listarTodas().stream().map(this::toModel).toList();
+        return CollectionModel.of(lista, linkTo(methodOn(DenunciaController.class).listar()).withSelfRel());
     }
 
-    @Operation(summary = "Registrar nueva denuncia", description = "Crea una nueva denuncia por maltrato o abandono animal")
+    @Operation(summary = "Registrar nueva denuncia")
     @PostMapping
-    public ResponseEntity<Denuncia> crear(@RequestBody Denuncia denuncia) {
-        return new ResponseEntity<>(service.guardar(denuncia), HttpStatus.CREATED);
+    public ResponseEntity<EntityModel<Denuncia>> crear(@RequestBody Denuncia denuncia) {
+        return new ResponseEntity<>(toModel(service.guardar(denuncia)), HttpStatus.CREATED);
     }
 
-    @Operation(summary = "Buscar denuncia por ID", description = "Retorna los datos de una denuncia específica")
+    @Operation(summary = "Buscar denuncia por ID")
     @GetMapping("/{id}")
-    public ResponseEntity<Denuncia> obtenerPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(service.buscarPorId(id));
+    public EntityModel<Denuncia> obtenerPorId(@PathVariable Long id) {
+        return toModel(service.buscarPorId(id));
     }
 
-    @Operation(summary = "Actualizar estado de denuncia",
-               description = "Modifica el estado de una denuncia existente (ej: EN_REVISION, RESUELTA, CERRADA)")
+    @Operation(summary = "Actualizar estado de denuncia (EN_REVISION, RESUELTA, CERRADA)")
     @PutMapping("/{id}")
-    public ResponseEntity<Denuncia> actualizarEstado(@PathVariable Long id,
-                                                     @RequestBody Denuncia denunciaDetalles) {
-        Denuncia denunciaActualizada = service.actualizarEstado(id, denunciaDetalles.getEstado());
-        return ResponseEntity.ok(denunciaActualizada);
+    public EntityModel<Denuncia> actualizarEstado(@PathVariable Long id, @RequestBody Denuncia denunciaDetalles) {
+        return toModel(service.actualizarEstado(id, denunciaDetalles.getEstado()));
     }
 
-    @Operation(summary = "Eliminar denuncia", description = "Elimina una denuncia del sistema por su ID")
+    @Operation(summary = "Eliminar denuncia")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         service.eliminar(id);
