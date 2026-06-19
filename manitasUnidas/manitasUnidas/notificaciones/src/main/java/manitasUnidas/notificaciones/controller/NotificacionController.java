@@ -7,11 +7,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.CollectionModel;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 import java.util.List;
 
+@Slf4j
 @Tag(name = "Notificaciones", description = "Envio y consulta de notificaciones a usuarios del sistema")
 @RestController
 @RequestMapping("/notificaciones")
@@ -30,6 +32,7 @@ public class NotificacionController {
     @Operation(summary = "Enviar notificacion", description = "Procesa y envia una notificacion al correo del usuario")
     @PostMapping("/enviar")
     public ResponseEntity<EntityModel<Notificacion>> enviar(@RequestBody Notificacion notificacion) {
+        log.info("[NotificacionController] POST /notificaciones/enviar - correo={}", notificacion.getCorreoUsuario());
         Notificacion nuevaNoti = service.procesarYEnviar(notificacion);
         return ResponseEntity.ok(toModel(nuevaNoti));
     }
@@ -37,6 +40,7 @@ public class NotificacionController {
     @Operation(summary = "Historial de notificaciones", description = "Retorna todas las notificaciones enviadas")
     @GetMapping("/historial")
     public CollectionModel<EntityModel<Notificacion>> listarTodas() {
+        log.info("[NotificacionController] GET /notificaciones/historial");
         List<EntityModel<Notificacion>> lista = service.obtenerTodas().stream().map(this::toModel).toList();
         return CollectionModel.of(lista,
             linkTo(methodOn(NotificacionController.class).listarTodas()).withSelfRel());
