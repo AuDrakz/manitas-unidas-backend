@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import manitasUnidas.blackList.model.BlackList;
 import manitasUnidas.blackList.service.BlackListService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,6 +19,7 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.CollectionModel;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/blacklist")
 @Tag(name = "Modulo de Lista Negra (Blacklist)", description = "Endpoints para controlar la restriccion y el bloqueo de acceso de usuarios.")
@@ -38,6 +40,7 @@ public class BlackListController {
     @ApiResponse(responseCode = "200", description = "Lista de bloqueos obtenida correctamente.")
     @GetMapping
     public CollectionModel<EntityModel<BlackList>> listar() {
+        log.info("[BlackListController] GET /api/blacklist");
         List<EntityModel<BlackList>> lista = service.obtenerTodos().stream().map(this::toModel).toList();
         return CollectionModel.of(lista, linkTo(methodOn(BlackListController.class).listar()).withSelfRel());
     }
@@ -50,13 +53,15 @@ public class BlackListController {
     })
     @GetMapping("/{id}")
     public EntityModel<BlackList> buscarPorId(@PathVariable Long id) {
+        log.info("[BlackListController] GET /api/blacklist/{}", id);
         return toModel(service.obtenerPorId(id));
     }
 
     @Operation(summary = "Verificar si un RUT esta bloqueado")
-    @ApiResponse(responseCode = "200", description = "Retorna true/false.")
+    @ApiResponse(responseCode = "200", description = "Retorna true si bloqueado, false si no.")
     @GetMapping("/verificar/{rut}")
     public ResponseEntity<Boolean> estaBloqueado(@PathVariable String rut) {
+        log.info("[BlackListController] Verificando RUT={}", rut);
         try {
             service.buscarPorRut(rut);
             return ResponseEntity.ok(true);
@@ -73,6 +78,7 @@ public class BlackListController {
     })
     @PostMapping
     public ResponseEntity<EntityModel<BlackList>> agregar(@Valid @RequestBody BlackList registro) {
+        log.info("[BlackListController] POST /api/blacklist - RUT={}", registro.getRut());
         return new ResponseEntity<>(toModel(service.bloquearUsuario(registro)), HttpStatus.CREATED);
     }
 
@@ -84,6 +90,7 @@ public class BlackListController {
     })
     @PutMapping("/{id}")
     public EntityModel<BlackList> actualizar(@PathVariable Long id, @RequestBody BlackList blackList) {
+        log.info("[BlackListController] PUT /api/blacklist/{}", id);
         return toModel(service.actualizarBlackList(id, blackList));
     }
 
@@ -94,6 +101,7 @@ public class BlackListController {
     })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+        log.info("[BlackListController] DELETE /api/blacklist/{}", id);
         service.desbloquear(id);
         return ResponseEntity.noContent().build();
     }
