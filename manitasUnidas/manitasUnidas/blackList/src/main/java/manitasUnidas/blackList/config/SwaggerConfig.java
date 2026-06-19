@@ -1,4 +1,4 @@
-package manitasUnidas.notificaciones.config;
+package manitasUnidas.blackList.config;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
@@ -7,15 +7,15 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class OpenApiConfig {
+public class SwaggerConfig {
 
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
             .info(new Info()
-                .title("API de Notificaciones - Proyecto Manitas Unidas") 
+                .title("API de Lista Negra (BlackList) - Proyecto Manitas Unidas") 
                 .version("1.0.0") 
-                .description("Servicio encargado de gestionar el envío de alertas, correos electrónicos e historial de notificaciones del sistema.")
+                .description("Servicio encargado de registrar, verificar y administrar las restricciones de usuarios bloqueados en el sistema mediante su RUT.")
                 .contact(new Contact()
                     .name("Equipo de Desarrollo Manitas Unidas")
                     .email("soporte@manitasunidas.cl")
