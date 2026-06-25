@@ -1,0 +1,18 @@
+# Compilados de Maven
+target/
+*.jar
+*.war
+*.zip
+*.tar.gz
+
+# Logs del sistema
+*.log
+
+# Configuraciones de editores de codigo
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp

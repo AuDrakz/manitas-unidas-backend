@@ -1,6 +1,5 @@
 package manitasUnidas.refugios.service;
 
-import lombok.extern.slf4j.Slf4j;
 import manitasUnidas.refugios.dto.RefugioRequestDTO;
 import manitasUnidas.refugios.dto.RefugioResponseDTO;
 import manitasUnidas.refugios.exception.ResourceNotFoundException;
@@ -22,8 +21,10 @@ import java.util.stream.Collectors;
  * @version 1.0
  */
 @Service
-@Slf4j
 public class RefugioService {
+
+    // Logger manual explícito para el servicio
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(RefugioService.class);
 
     @Autowired
     private RefugioRepository refugioRepo;
@@ -177,7 +178,7 @@ public class RefugioService {
     }
 
     /**
-     * Calcula los cupos disponibles de un refugio.
+     * Calculates available spots for a shelter.
      *
      * @param id identificador del refugio
      * @return cantidad de cupos disponibles

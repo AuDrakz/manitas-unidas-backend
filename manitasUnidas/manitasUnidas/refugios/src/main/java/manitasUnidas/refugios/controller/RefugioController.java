@@ -3,7 +3,6 @@ package manitasUnidas.refugios.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.extern.slf4j.Slf4j;
 import manitasUnidas.refugios.dto.RefugioRequestDTO;
 import manitasUnidas.refugios.dto.RefugioResponseDTO;
 import manitasUnidas.refugios.service.RefugioService;
@@ -20,9 +19,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/refugios")
-@Slf4j
 @Tag(name = "Refugios", description = "Gestión de refugios de animales")
 public class RefugioController {
+
+    // Declaración explícita del Logger compatible con cualquier versión de Java
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(RefugioController.class);
 
     @Autowired
     private RefugioService refugioServ;

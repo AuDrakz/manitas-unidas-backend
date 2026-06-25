@@ -1,7 +1,8 @@
 package manitasUnidas.solicitud.controller;
 
 import jakarta.validation.Valid;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,10 +18,11 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 import java.util.List;
 
 @Tag(name = "Solicitudes", description = "Gestion de solicitudes de adopcion")
-@Slf4j
 @RestController
 @RequestMapping("/api/solicitudes")
 public class SolicitudController {
+
+    private static final Logger log = LoggerFactory.getLogger(SolicitudController.class);
 
     @Autowired
     private SolicitudService service;

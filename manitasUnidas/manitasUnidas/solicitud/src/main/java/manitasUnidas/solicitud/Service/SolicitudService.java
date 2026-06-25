@@ -1,9 +1,10 @@
 package manitasUnidas.solicitud.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import lombok.extern.slf4j.Slf4j;
 import manitasUnidas.solicitud.model.Solicitud;
 import manitasUnidas.solicitud.repository.SolicitudRepository;
 import manitasUnidas.solicitud.client.BlackListClient;
@@ -16,9 +17,10 @@ import manitasUnidas.solicitud.exception.ResourceNotFoundException;
 import java.time.LocalDate;
 import java.util.List;
 
-@Slf4j   
 @Service
 public class SolicitudService {
+
+    private static final Logger log = LoggerFactory.getLogger(SolicitudService.class);
 
     @Autowired
     private SolicitudRepository repository;
@@ -30,7 +32,7 @@ public class SolicitudService {
     private MascotaClient mascotaClient;
 
     @Autowired
-    private UsuarioClient usuarioClient;   // <-- NUEVO: valida que el adoptante exista
+    private UsuarioClient usuarioClient;
 
     // 1. Crear solicitud con validaciones completas
     public Solicitud crearSolicitud(SolicitudRequestDTO dto) {
@@ -91,7 +93,7 @@ public class SolicitudService {
         return repository.findAll();
     }
 
-    // 3. Buscar por ID -- CAMBIO: ahora lanza excepción en vez de retornar null
+    // 3. Buscar por ID
     public Solicitud buscarPorId(Long id) {
         log.info("[SolicitudService] Buscando solicitud ID={}", id);
         return repository.findById(id)
@@ -101,7 +103,7 @@ public class SolicitudService {
                 });
     }
 
-    // 4. Cambiar estado -- CAMBIO: ahora lanza excepción en vez de retornar null
+    // 4. Cambiar estado
     public Solicitud cambiarEstado(Long id, String nuevoEstado) {
         log.info("[SolicitudService] Cambiando estado de solicitud ID={} a '{}'", id, nuevoEstado);
         Solicitud solicitud = buscarPorId(id);
@@ -111,7 +113,7 @@ public class SolicitudService {
         return actualizada;
     }
 
-    // 5. Eliminar -- CAMBIO: lanza excepción en vez de retornar boolean
+    // 5. Eliminar
     public void eliminarSolicitud(Long id) {
         log.info("[SolicitudService] Eliminando solicitud ID={}", id);
         buscarPorId(id); // Lanza 404 si no existe

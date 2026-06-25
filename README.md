@@ -44,7 +44,46 @@ Cada microservicio tiene su propia base de datos MySQL independiente.
 
 ---
 
+## Requisitos Críticos de Código (Descubrimiento)
+
+Para asegurar que los servicios de negocio se registren correctamente en Eureka, cada clase principal debe incluir:
+
+```java
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+
+@SpringBootApplication
+@EnableDiscoveryClient
+public class Application {
+}
+```
+---
+
+## Orden de Levantamiento
+
+1. **Inicializar Base de Datos**
+   - Abrir XAMPP.
+   - Iniciar MySQL en el puerto `3307`.
+
+2. **Compilar el Proyecto**
+
+```cmd
+mvn clean package -DskipTests
+```
+
+3. **Ejecutar el Script de Arranque**
+
+```cmd
+arrancar-nativo.bat
+```
+
+4. **Verificar Registro en Eureka**
+
+http://localhost:8761
+
+Todos los microservicios deben aparecer registrados correctamente.
+
 ## Bases de Datos
+---
 
 Cada servicio usa su propia base de datos en MySQL (puerto 3307):
 
@@ -67,19 +106,6 @@ Cada servicio usa su propia base de datos en MySQL (puerto 3307):
 - Puerto MySQL: `3307`
 
 Las bases de datos se crean automáticamente con `createDatabaseIfNotExist=true`.
-
----
-
-## Orden de Levantamiento
-
-1. Iniciar MySQL en puerto 3307
-2. Levantar **Eureka Server** (`/eureka`)
-3. Levantar **API Gateway** (`/apiGateway`)
-4. Levantar los microservicios en cualquier orden:
-   - usuarios, mascotas, refugios, blacklist, fichaVet
-   - solicitud, notificaciones, seguimiento, denuncias, seguridad
-
-Verificar que todos aparecen en: `http://localhost:8761`
 
 ---
 
@@ -216,3 +242,134 @@ http://localhost:{puerto}/doc/swagger-ui/index.html
 
 ### Documentación
 - Swagger / OpenAPI
+
+---
+
+# Pruebas Unitarias
+
+El proyecto incorpora pruebas unitarias para validar la lógica de negocio de los microservicios utilizando:
+
+* JUnit 5
+* Mockito
+* Spring Boot Test
+
+Ejecutar pruebas:
+
+```bash
+mvn test
+```
+
+Compilar sin ejecutar pruebas:
+
+```bash
+mvn clean package -DskipTests
+```
+
+---
+
+# Script de Arranque
+
+Para facilitar la ejecución del sistema se incluye el archivo:
+
+```bash
+arrancar-nativo.bat
+```
+
+Este script permite:
+
+1. Iniciar Eureka Server.
+2. Iniciar los microservicios.
+3. Iniciar API Gateway.
+4. Reducir el tiempo de configuración manual.
+5. Levantar la solución completa mediante un único comando.
+
+---
+
+# Verificación en Eureka
+
+Una vez levantado el sistema, acceder a:
+
+```text
+http://localhost:8761
+```
+
+Deben visualizarse registrados los siguientes servicios:
+
+* API-GATEWAY
+* MS-USUARIOS
+* MS-MASCOTAS
+* MS-REFUGIOS
+* MS-SOLICITUD
+* MS-BLACKLIST
+* MS-FICHAVET
+* MS-NOTIFICACIONES
+* MS-SEGUIMIENTO
+* MS-DENUNCIAS
+* MS-SEGURIDAD
+
+Todos los servicios deben encontrarse en estado **UP**.
+
+---
+
+# Evidencia Recomendada
+
+Para facilitar la evaluación del proyecto se recomienda adjuntar capturas de:
+
+* Registro de servicios en Eureka.
+* Documentación Swagger.
+* Pruebas realizadas con Postman.
+* Ejecución de microservicios.
+* Bases de datos creadas automáticamente.
+
+---
+
+# Video de Demostración
+
+Enlace del video:
+
+```text
+[Agregar enlace del video]
+```
+
+El video muestra:
+
+1. Inicio de MySQL.
+2. Ejecución de arrancar-nativo.bat.
+3. Registro de servicios en Eureka.
+4. Uso de Swagger.
+5. Pruebas de endpoints mediante Postman.
+6. Comunicación entre microservicios.
+7. Validación de reglas de negocio.
+
+---
+
+# Subtítulos
+
+El video incorpora subtítulos explicativos para facilitar la comprensión de:
+
+* Arquitectura basada en microservicios.
+* Registro y descubrimiento mediante Eureka.
+* Enrutamiento mediante API Gateway.
+* Comunicación entre servicios con OpenFeign.
+* Persistencia de datos en MySQL.
+* Validaciones y reglas de negocio implementadas.
+
+---
+
+# Repositorio
+
+Repositorio GitHub del proyecto:
+
+```text
+[Agregar enlace del repositorio]
+```
+
+---
+
+# Integrantes
+
+* Alan Ojeda 1
+* Nayeli 2
+* Javier Molina 3
+
+---
