@@ -1,5 +1,6 @@
 package manitasUnidas.solicitud.config;
 
+import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
@@ -15,9 +16,12 @@ public class SwaggerConfig {
                 .info(new Info()
                         .title("Microservicio Solicitud")
                         .description("API para gestión de solicitudes de adopción del sistema Manitas Unidas")
-                        .version("1.0")
+                        .version("1.0.0")
                         .contact(new Contact()
-                                .name("Grupo 3")
-                                .email("grupo3@manitasunidas.cl")));
+                                .name("Grupo 3 - Manitas Unidas")
+                                .email("naye.leiva@duocuc.cl"))
+                        .license(new License()
+                                .name("Uso Académico")
+                                .url("https://www.duoc.cl")));
     }
 }
