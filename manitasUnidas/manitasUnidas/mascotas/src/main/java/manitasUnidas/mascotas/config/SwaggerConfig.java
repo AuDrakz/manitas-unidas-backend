@@ -15,14 +15,11 @@ public class SwaggerConfig {
         return new OpenAPI()
                 .info(new Info()
                         .title("Microservicio Mascotas")
-                        .description("""
-                                API REST para la gestión de mascotas
-                                del sistema Manitas Unidas.
-                                """)
+                        .description("Api para la gestión de mascotas de Manitas Unidas")
                         .version("1.0.0")
                         .contact(new Contact()
                                 .name("Grupo 3 - Manitas Unidas")
-                                .email("grupo3@manitasunidas.cl"))
+                                .email("naye.leiva@duocuc.cl"))
                         .license(new License()
                                 .name("Uso Académico")
                                 .url("https://www.duoc.cl")));

@@ -2,6 +2,7 @@ package manitasUnidas.notificaciones.config;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.info.Contact;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,12 +15,13 @@ public class SwaggerConfig {
         return new OpenAPI()
             .info(new Info()
                 .title("API de Notificaciones - Proyecto Manitas Unidas") 
-                .version("1.0.0") 
                 .description("Servicio encargado de gestionar el envío de alertas, correos electrónicos e historial de notificaciones del sistema.")
-                .contact(new Contact()
-                    .name("Equipo de Desarrollo Manitas Unidas")
-                    .email("soporte@manitasunidas.cl")
-                )
-            );
+                        .version("1.0.0")
+                        .contact(new Contact()
+                                .name("Grupo 3 - Manitas Unidas")
+                                .email("naye.leiva@duocuc.cl"))
+                        .license(new License()
+                                .name("Uso Académico")
+                                .url("https://www.duoc.cl")));
     }
 }
