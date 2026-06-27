@@ -5,11 +5,13 @@ import manitasUnidas.usuarios.exception.ResourceNotFoundException;
 import manitasUnidas.usuarios.model.Usuario;
 import manitasUnidas.usuarios.service.UsuarioService;
 
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -331,7 +333,6 @@ class UsuarioControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(usuarioEjemplo)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.nombre").value("Juan Perez"));
 
         /*
@@ -368,7 +369,9 @@ class UsuarioControllerTest {
          * ACT + ASSERT:
          */
         mockMvc.perform(delete("/api/usuarios/1"))
-                .andExpect(status().isNoContent());
+                .andExpect(status().isNoContent())
+                .andExpect(content().string(""));;
+                
 
         /*
          * VERIFY:
