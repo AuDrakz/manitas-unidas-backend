@@ -116,6 +116,7 @@ class UsuarioServiceTest {
         assertNotNull(resultado);
         assertEquals(1L, resultado.getId());
         assertEquals("Juan Perez", resultado.getNombre());
+        verify(usuarioRepository, times(1)).findById(1L);
     }
 
     @Test
@@ -127,8 +128,9 @@ class UsuarioServiceTest {
                 () -> usuarioService.buscarPorId(99L));
 
         assertTrue(ex.getMessage().contains("99"));
+        verify(usuarioRepository, times(1)).findById(99L);
     }
-
+    
     // =====================================================================
     // TESTS: actualizarUsuario()
     // =====================================================================
@@ -151,6 +153,7 @@ class UsuarioServiceTest {
 
         assertNotNull(resultado);
         assertEquals("Juan Actualizado", resultado.getNombre());
+        verify(usuarioRepository, times(1)).findById(1L);
         verify(usuarioRepository, times(1)).save(any(Usuario.class));
     }
 
@@ -169,13 +172,14 @@ class UsuarioServiceTest {
     // TESTS: eliminar()
     // =====================================================================
 
-    @Test
-    @DisplayName("eliminar - elimina correctamente cuando usuario existe")
-    void eliminar_exitoso() {
-        assertDoesNotThrow(() -> usuarioService.eliminar(1L));
+@Test
+@DisplayName("eliminar - elimina correctamente cuando usuario existe")
+void eliminar_exitoso() {
 
-        verify(usuarioRepository, times(1)).deleteById(1L);
-    }
+    assertDoesNotThrow(() -> usuarioService.eliminar(1L));
+
+    verify(usuarioRepository, times(1)).deleteById(1L);
+}
 
     // =====================================================================
     // TESTS: existePorId()
@@ -187,6 +191,7 @@ class UsuarioServiceTest {
         when(usuarioRepository.existsById(1L)).thenReturn(true);
 
         assertTrue(usuarioService.existePorId(1L));
+        verify(usuarioRepository, times(1)).existsById(1L);
     }
 
     @Test
@@ -195,5 +200,6 @@ class UsuarioServiceTest {
         when(usuarioRepository.existsById(99L)).thenReturn(false);
 
         assertFalse(usuarioService.existePorId(99L));
+        verify(usuarioRepository, times(1)).existsById(99L);
     }
 }
