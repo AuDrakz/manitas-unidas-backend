@@ -1,375 +1,388 @@
-# Manitas Unidas — Backend de Microservicios
+# 🐾 MANITAS UNIDAS - SISTEMA DE MICROSERVICIOS
 
-Sistema de adopción de mascotas desarrollado con arquitectura de microservicios en Spring Boot.
+Sistema de gestión de adopción de mascotas desarrollado con arquitectura de microservicios usando Spring Boot y Spring Cloud.
 
 ---
 
-## Arquitectura General
+##  COMPONENTES DE DISTRIBUCIÓN Y DEFENSA TÉCNICA
 
-```
-[Cliente / Postman]
+Utilice los siguientes enlaces externos para descargar las versiones listas para producción y visualizar la defensa del proyecto:
+
+| Componente | Descripción | Enlace |
+| :--- | :--- | :--- |
+| **📦 Versión Sin Docker** *(Arranque Nativo)* | Archivo `.zip` que contiene los `.jar` compilados y el script `arrancar-nativo.bat` ordenado por fases. | [Descargar ZIP Nativo aquí](https://drive.google.com/file/d/1OfJcR_y7Ga49PkB233yRWgfjZswnHOVi/view?usp=sharing) |
+| **🎥 Video de Defensa Técnica** *(Evaluación Individual)* | Enlace directo al video explicativo donde se evidencia el funcionamiento, testing y el aporte técnico individual. Duración ideal: 15 minutos (máximo 18 minutos). | [Ver Video Explicativo aquí](ENLACE_A_VIDEO_AQUÍ) |
+
+---
+
+##  Video explicativo de la defensa
+
+Enlace al video: *(colocar aquí el enlace de Google Drive, YouTube u otra plataforma)*
+
+---
+
+##  Subtítulos o transcripción del video
+
+*(Pegar aquí la transcripción del video o indicar el archivo donde se encuentra, ej: `subtitulos-video.txt`)*
+
+---
+
+## 1. Objetivo del proyecto
+
+Manitas Unidas es un sistema de gestión para un centro de adopción de mascotas. Permite administrar usuarios, mascotas, refugios, solicitudes de adopción, fichas veterinarias, seguimiento post-adopción, notificaciones, blacklist de adoptantes y denuncias mediante una arquitectura de microservicios.
+
+El flujo principal es:
+
+1. Registrar usuarios (adoptantes, staff, veterinarios).
+2. Registrar mascotas y asociarlas a refugios.
+3. Gestionar solicitudes de adopción validando blacklist y disponibilidad.
+4. Aprobar/rechazar solicitudes con notificación automática al adoptante.
+5. Registrar y actualizar fichas veterinarias (vacunas, tratamientos).
+6. Crear seguimiento post-adopción tras cada adopción aprobada.
+7. Gestionar denuncias relacionadas al sistema.
+
+---
+
+## 2. Arquitectura general
+
+```text
+Cliente externo / Postman / Navegador
         |
-  [API Gateway :8090]
+        v
+API Gateway :8090
         |
-  [Eureka Server :8761]  ← registro y descubrimiento
-        |
-  ┌─────┴──────────────────────────────────────────────┐
-  │  ms-usuarios   ms-mascotas   ms-refugios            │
-  │  ms-solicitud  ms-blacklist  ms-fichavet             │
-  │  ms-notif.     ms-seguim.    ms-denuncias            │
-  │  ms-seguridad                                        │
-  └─────────────────────────────────────────────────────┘
-```
+        +--> ms-usuarios      :8081  -> db_usuarios
+        +--> ms-mascotas      :8082  -> db_mascotas
+        +--> ms-refugios      :8083  -> db_refugios
+        +--> ms-notificaciones:8084  -> db_notificaciones
+        +--> ms-solicitud     :8085  -> db_solicitudes
+        +--> ms-fichavet      :8086  -> db_fichavet
+        +--> ms-seguimiento   :8087  -> db_seguimiento
+        +--> ms-denuncias     :8088  -> db_denuncias
+        +--> ms-blacklist     :8089  -> db_blacklist
+        +--> seguridad        :8091  -> db_usuarios
 
-Cada microservicio tiene su propia base de datos MySQL independiente.
+Eureka Server :8761
+```
 
 ---
 
-## Microservicios — Puertos
+## 3. Microservicios del sistema
 
-| Microservicio     | Nombre en Eureka     | Puerto |
-|-------------------|----------------------|--------|
-| Eureka Server     | —                    | 8761   |
-| API Gateway       | api-gateway          | 8090   |
-| Usuarios          | ms-usuarios          | 8081   |
-| Mascotas          | ms-mascotas          | 8082   |
-| Refugios          | ms-refugios          | 8083   |
-| Solicitud         | ms-solicitud         | 8084   |
-| BlackList         | ms-blacklist         | 8085   |
-| FichaVet          | ms-fichavet          | 8086   |
-| Notificaciones    | ms-notificaciones    | 8087   |
-| Seguimiento       | ms-seguimiento       | 8088   |
-| Denuncias         | ms-denuncias         | 8089   |
-| Seguridad         | ms-seguridad         | 8091   |
+| Módulo             | Puerto | Responsabilidad                              |
+| ------------------ | -----: | -------------------------------------------- |
+| `eureka`           |   8761 | Registro y descubrimiento de servicios       |
+| `apiGateway`       |   8090 | Punto único de entrada a las APIs            |
+| `usuarios`         |   8081 | Gestión de usuarios del sistema              |
+| `mascotas`         |   8082 | Gestión de mascotas en adopción              |
+| `refugios`         |   8083 | Gestión de refugios y centros de adopción    |
+| `notificaciones`   |   8084 | Envío de notificaciones a usuarios           |
+| `solicitud`        |   8085 | Gestión de solicitudes de adopción           |
+| `fichaVet`         |   8086 | Fichas veterinarias, vacunas y tratamientos  |
+| `seguimiento`      |   8087 | Seguimiento post-adopción                    |
+| `denuncias`        |   8088 | Gestión de denuncias                         |
+| `blackList`        |   8089 | Lista negra de adoptantes inhabilitados      |
+| `seguridad`        |   8091 | Autenticación y seguridad (JWT)              |
 
 ---
 
-## Requisitos Críticos de Código (Descubrimiento)
+## 4. Lógica de negocio y roles
 
-Para asegurar que los servicios de negocio se registren correctamente en Eureka, cada clase principal debe incluir:
+### Roles del sistema
 
-```java
-import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+| Rol | Permisos |
+| --- | --- |
+| **Adoptante** | Puede ver mascotas y solicitar adopciones. |
+| **Staff** | Puede aprobar o rechazar solicitudes de adopción y gestionar mascotas. |
+| **Veterinario** | Puede actualizar fichas médicas, vacunas y tratamientos. |
 
-@SpringBootApplication
-@EnableDiscoveryClient
-public class Application {
-}
-```
+### Reglas de negocio
+
+- Un adoptante **no puede adoptar** si su RUT aparece en `ms-blacklist`.
+- Una mascota **no puede ser adoptada** si su estado no es `"Disponible"`.
+- Una mascota **no puede ser entregada** si tiene vacunas pendientes en `ms-fichavet`.
+- Solo el **Staff** puede aprobar o rechazar solicitudes de adopción.
+- Solo el **Veterinario** puede modificar fichas médicas, vacunas y tratamientos.
+- Cuando una adopción es **aprobada**, `ms-solicitud` cambia el estado a `"Aprobada"` y solicita a `ms-notificaciones` que avise al adoptante.
+- Cuando una mascota es adoptada, `ms-mascotas` cambia su estado de `"Disponible"` a `"Adoptado"`.
+- Tras una adopción aprobada, `ms-seguimiento` crea un registro de seguimiento post-adopción.
+- Un usuario **no puede tener más de una solicitud** de adopción en estado pendiente.
+
 ---
 
-## Orden de Levantamiento
+## 5. Tecnologías utilizadas
 
-1. **Inicializar Base de Datos**
-   - Abrir XAMPP.
-   - Iniciar MySQL en el puerto `3307`.
+- Java 21
+- Spring Boot
+- Spring Cloud (Eureka, Gateway, OpenFeign)
+- Spring Security / JWT
+- Spring Data JPA
+- MySQL (puerto 3307 con XAMPP)
+- Lombok
+- Bean Validation
+- Swagger / OpenAPI
+- Maven Multi-Módulo
+- JUnit 5 / Mockito
 
-2. **Compilar el Proyecto**
+---
 
-```cmd
-mvn clean package -DskipTests
+## 6. Estructura del proyecto
+
+```text
+manitas-unidas-backend/
+└── manitasUnidas/
+    └── manitasUnidas/
+        ├── pom.xml                  ← Proyecto padre Maven
+        ├── arrancar-nativo.bat      ← Script de arranque nativo
+        ├── eureka/
+        ├── apiGateway/
+        ├── usuarios/
+        ├── mascotas/
+        ├── refugios/
+        ├── solicitud/
+        ├── seguridad/
+        ├── fichaVet/
+        ├── notificaciones/
+        ├── seguimiento/
+        ├── blackList/
+        └── denuncias/
 ```
 
-3. **Ejecutar el Script de Arranque**
+---
 
-```cmd
+## 7. Bases de datos
+
+Cada microservicio utiliza su propia base de datos (puerto MySQL: `3307`).
+
+| Microservicio  | Base de datos      |
+| -------------- | ------------------ |
+| `usuarios`     | `db_usuarios`      |
+| `mascotas`     | `db_mascotas`      |
+| `refugios`     | `db_refugios`      |
+| `notificaciones` | `db_notificaciones` |
+| `solicitud`    | `db_solicitudes`   |
+| `fichaVet`     | `db_fichavet`      |
+| `seguimiento`  | `db_seguimiento`   |
+| `denuncias`    | `db_denuncias`     |
+| `blackList`    | `db_blacklist`     |
+| `seguridad`    | `db_usuarios`      |
+
+> Las bases de datos se crean automáticamente si no existen gracias a `createDatabaseIfNotExist=true`.
+
+Si el equipo usa MySQL en el puerto `3306`, cambiar en cada `application.properties`:
+
+```properties
+spring.datasource.url=jdbc:mysql://localhost:3306/NOMBRE_BD?createDatabaseIfNotExist=true&serverTimezone=UTC
+```
+
+---
+
+## 8. Requisitos previos
+
+- Java 17 instalado y en el `PATH`
+- XAMPP con MySQL activo en el puerto `3307` (o MySQL en `3306` con ajuste de config)
+- Maven instalado (o usar el `mvnw` incluido en cada módulo)
+
+---
+
+## 9. Compilación del proyecto completo
+
+Desde la raíz del proyecto padre (`manitasUnidas/manitasUnidas/`):
+
+```bash
+mvn clean install -DskipTests
+```
+
+Se usa `-DskipTests` para saltarse los tests durante la compilación inicial. Los tests pueden ejecutarse por separado.
+
+---
+
+## 10. Puesta en marcha sin Docker (Nativa)
+
+### Opción A — Script automático (recomendado)
+
+Desde la raíz del proyecto, ejecutar el script:
+
+```
 arrancar-nativo.bat
 ```
 
-4. **Verificar Registro en Eureka**
+El script levanta los servicios en el orden correcto con tiempos de espera:
 
+1. **Eureka Server** `[8761]` — espera 20 segundos para que esté activo.
+2. **Microservicios de negocio** (todos en paralelo): `usuarios`, `seguridad`, `mascotas`, `refugios`, `solicitud`, `fichaVet`, `notificaciones`, `seguimiento`, `blackList`, `denuncias` — espera 35 segundos para el registro en Eureka.
+3. **API Gateway** `[8090]`
+
+### Opción B — Manual desde terminal
+
+```bash
+# 1. Eureka
+cd eureka && mvn spring-boot:run
+
+# 2. Microservicios (en terminales separadas, después de que Eureka esté arriba)
+cd usuarios && mvn spring-boot:run
+cd mascotas && mvn spring-boot:run
+# ... (repetir para cada microservicio)
+
+# 3. API Gateway (último)
+cd apiGateway && mvn spring-boot:run
+```
+
+### Orden de ejecución
+
+| Orden | Servicio | Puerto |
+| ----: | -------- | -----: |
+| 1 | `eureka` | 8761 |
+| 2 | `usuarios` | 8081 |
+| 2 | `seguridad` | 8091 |
+| 2 | `mascotas` | 8082 |
+| 2 | `refugios` | 8083 |
+| 2 | `solicitud` | 8085 |
+| 2 | `fichaVet` | 8086 |
+| 2 | `notificaciones` | 8084 |
+| 2 | `seguimiento` | 8087 |
+| 2 | `blackList` | 8089 |
+| 2 | `denuncias` | 8088 |
+| 3 | `apiGateway` | 8090 |
+
+---
+
+## 11. Eureka Server
+
+La consola de Eureka se encuentra en:
+
+```
 http://localhost:8761
-
-Todos los microservicios deben aparecer registrados correctamente.
-
-## Bases de Datos
----
-
-Cada servicio usa su propia base de datos en MySQL (puerto 3307):
-
-| Base de Datos        | Microservicio  |
-|----------------------|----------------|
-| db_usuarios          | ms-usuarios    |
-| db_mascotas          | ms-mascotas    |
-| db_refugios          | ms-refugios    |
-| db_solicitudes       | ms-solicitud   |
-| db_blacklist         | ms-blacklist   |
-| db_fichavet          | ms-fichavet    |
-| db_notificaciones    | ms-notificaciones |
-| db_seguimiento       | ms-seguimiento |
-| db_denuncias         | ms-denuncias   |
-| db_seguridad         | ms-seguridad   |
-
-**Credenciales (desarrollo local):**
-- Usuario: `root`
-- Contraseña: *(vacía)*
-- Puerto MySQL: `3307`
-
-Las bases de datos se crean automáticamente con `createDatabaseIfNotExist=true`.
-
----
-
-## Endpoints Principales (vía Gateway :8090)
-
-### Usuarios — `/api/usuarios`
-| Método | Ruta                       | Descripción                        |
-|--------|----------------------------|------------------------------------|
-| GET    | /api/usuarios              | Listar todos los usuarios          |
-| GET    | /api/usuarios/{id}         | Buscar usuario por ID              |
-| POST   | /api/usuarios              | Crear nuevo usuario                |
-| PUT    | /api/usuarios/{id}         | Actualizar usuario                 |
-| DELETE | /api/usuarios/{id}         | Eliminar usuario                   |
-| GET    | /api/usuarios/existe/{id}  | Verificar si existe (uso interno)  |
-
-### Mascotas — `/api/mascotas`
-| Método | Ruta                       | Descripción                        |
-|--------|----------------------------|------------------------------------|
-| GET    | /api/mascotas              | Listar todas las mascotas          |
-| GET    | /api/mascotas/{id}         | Buscar mascota por ID              |
-| POST   | /api/mascotas              | Registrar mascota (valida usuario y refugio) |
-| PUT    | /api/mascotas/{id}         | Actualizar mascota                 |
-| DELETE | /api/mascotas/{id}         | Eliminar mascota                   |
-| GET    | /api/mascotas/estado/{id}  | Obtener estado de mascota          |
-| GET    | /api/mascotas/existe/{id}  | Verificar si existe (uso interno)  |
-
-### Refugios — `/api/refugios`
-| Método | Ruta                         | Descripción                    |
-|--------|------------------------------|--------------------------------|
-| GET    | /api/refugios                | Listar todos                   |
-| GET    | /api/refugios/{id}           | Buscar por ID                  |
-| POST   | /api/refugios                | Crear refugio                  |
-| PUT    | /api/refugios/{id}           | Editar refugio                 |
-| DELETE | /api/refugios/{id}           | Eliminar refugio               |
-| GET    | /api/refugios/disponibles    | Refugios con cupos disponibles |
-| GET    | /api/refugios/cupos/{id}     | Ver cupos de un refugio        |
-| GET    | /api/refugios/existe/{id}    | Verificar si existe (interno)  |
-
-### Solicitudes — `/api/solicitudes`
-| Método | Ruta                          | Descripción                              |
-|--------|-------------------------------|------------------------------------------|
-| GET    | /api/solicitudes              | Listar todas las solicitudes             |
-| GET    | /api/solicitudes/{id}         | Buscar solicitud por ID                  |
-| POST   | /api/solicitudes              | Crear solicitud (valida blacklist, usuario, mascota disponible, no duplicado pendiente) |
-| PUT    | /api/solicitudes/{id}/estado  | Cambiar estado (APROBADA/RECHAZADA)      |
-| DELETE | /api/solicitudes/{id}         | Eliminar solicitud                       |
-
-### BlackList — `/api/blacklist`
-| Método | Ruta                           | Descripción                  |
-|--------|--------------------------------|------------------------------|
-| GET    | /api/blacklist                 | Listar bloqueados            |
-| GET    | /api/blacklist/{id}            | Buscar por ID                |
-| GET    | /api/blacklist/verificar/{rut} | Verificar si RUT está bloqueado |
-| POST   | /api/blacklist                 | Agregar a la lista           |
-| PUT    | /api/blacklist/{id}            | Actualizar registro          |
-| DELETE | /api/blacklist/{id}            | Desbloquear                  |
-
-### FichaVet — `/api/fichavet`
-| Método | Ruta                               | Descripción                    |
-|--------|------------------------------------|--------------------------------|
-| GET    | /api/fichavet                      | Listar fichas                  |
-| GET    | /api/fichavet/{id}                 | Buscar ficha                   |
-| POST   | /api/fichavet                      | Crear ficha                    |
-| PUT    | /api/fichavet/{id}                 | Editar ficha                   |
-| DELETE | /api/fichavet/{id}                 | Eliminar ficha                 |
-| GET    | /api/fichavet/mascota/{idMascota}  | Historial por mascota          |
-| GET    | /api/fichavet/veterinario/{rut}    | Fichas por veterinario         |
-
-### Notificaciones — `/notificaciones`
-| Método | Ruta                        | Descripción                    |
-|--------|-----------------------------|--------------------------------|
-| POST   | /notificaciones/enviar      | Enviar notificación            |
-| GET    | /notificaciones/historial   | Ver historial de notificaciones |
-
----
-
-## Roles del Sistema
-
-| Rol         | Permisos                                                   |
-|-------------|-------------------------------------------------------------|
-| Adoptante   | Ver mascotas, crear solicitudes de adopción                |
-| Staff       | Aprobar/rechazar solicitudes, gestionar mascotas           |
-| Veterinario | Crear y modificar fichas médicas                           |
-
----
-
-## Reglas de Negocio Implementadas
-
-- Un adoptante **no puede solicitar adopción** si su RUT está en `ms-blacklist`
-- Una mascota **solo puede ser solicitada** si su estado es `Disponible`
-- Un adoptante **no puede tener más de una solicitud** en estado `PENDIENTE`
-- Al registrar una mascota se valida que el **dueño exista** en `ms-usuarios`
-- Al registrar una mascota se valida que el **refugio exista** en `ms-refugios`
-- Al crear una solicitud se valida que el **adoptante exista** en `ms-usuarios`
-
----
-
-## Comunicación entre Microservicios (OpenFeign)
-
-| Desde         | Hacia          | Para qué                              |
-|---------------|----------------|---------------------------------------|
-| ms-mascotas   | ms-usuarios    | Verificar que el dueño existe         |
-| ms-mascotas   | ms-refugios    | Verificar que el refugio existe       |
-| ms-solicitud  | ms-blacklist   | Verificar si el RUT está bloqueado    |
-| ms-solicitud  | ms-mascotas    | Verificar estado de la mascota        |
-| ms-solicitud  | ms-usuarios    | Verificar que el adoptante existe     |
-
----
-
-## Documentación API (Swagger)
-
-Cada microservicio expone su documentación en:
 ```
-http://localhost:{puerto}/doc/swagger-ui/index.html
+
+Con todos los servicios levantados, deben aparecer registrados:
+
+```
+API-GATEWAY
+MS-USUARIOS
+MS-MASCOTAS
+MS-REFUGIOS
+MS-SOLICITUD
+MS-FICHAVET
+MS-NOTIFICACIONES
+MS-SEGUIMIENTO
+MS-BLACKLIST
+MS-DENUNCIAS
+SEGURIDAD
 ```
 
 ---
 
-## Tecnologías
+## 12. API Gateway
 
-### Backend
-- Java 21
-- Spring Boot 3.5
-- Spring Cloud
+El API Gateway centraliza el acceso en el puerto `8090`:
 
-### Microservicios
-- Eureka Server
-- API Gateway
-- OpenFeign
-
-### Persistencia
-- MySQL 8
-- Spring Data JPA
-
-### Documentación
-- Swagger / OpenAPI
+| Recurso | URL |
+| ------- | --- |
+| Usuarios | `http://localhost:8090/api/usuarios/**` |
+| Mascotas | `http://localhost:8090/api/mascotas/**` |
+| Refugios | `http://localhost:8090/api/refugios/**` |
+| Solicitudes | `http://localhost:8090/api/solicitudes/**` |
+| Ficha Vet | `http://localhost:8090/api/fichavet/**` |
+| Notificaciones | `http://localhost:8090/api/notificaciones/**` |
+| Seguimiento | `http://localhost:8090/api/seguimientos/**` |
+| Blacklist | `http://localhost:8090/api/blacklist/**` |
+| Denuncias | `http://localhost:8090/api/denuncias/**` |
+| Seguridad/Auth | `http://localhost:8090/auth/**` |
 
 ---
 
-# Pruebas Unitarias
+## 13. Swagger por microservicio
 
-El proyecto incorpora pruebas unitarias para validar la lógica de negocio de los microservicios utilizando:
+| Microservicio | Swagger UI |
+| ------------- | ---------- |
+| `ms-usuarios` | `http://localhost:8081/swagger-ui.html` |
+| `ms-mascotas` | `http://localhost:8082/swagger-ui.html` |
+| `ms-refugios` | `http://localhost:8083/swagger-ui.html` |
+| `ms-notificaciones` | `http://localhost:8084/swagger-ui.html` |
+| `ms-solicitud` | `http://localhost:8085/swagger-ui.html` |
+| `ms-fichavet` | `http://localhost:8086/swagger-ui.html` |
+| `ms-seguimiento` | `http://localhost:8087/swagger-ui.html` |
+| `ms-denuncias` | `http://localhost:8088/swagger-ui.html` |
+| `ms-blacklist` | `http://localhost:8089/swagger-ui.html` |
 
-* JUnit 5
-* Mockito
-* Spring Boot Test
+---
 
-Ejecutar pruebas:
+## 14. Comunicación entre microservicios (OpenFeign)
+
+| Servicio origen | Servicio destino | Objetivo |
+| --------------- | ---------------- | -------- |
+| `ms-solicitud` | `ms-blacklist` | Verificar que el adoptante no esté inhabilitado |
+| `ms-solicitud` | `ms-mascotas` | Verificar disponibilidad de la mascota |
+| `ms-solicitud` | `ms-notificaciones` | Notificar al adoptante cuando se resuelve su solicitud |
+| `ms-solicitud` | `ms-seguimiento` | Crear seguimiento post-adopción al aprobar |
+| `ms-fichavet` | `ms-mascotas` | Asociar ficha veterinaria a la mascota |
+| `ms-denuncias` | `ms-usuarios` | Validar que el usuario denunciante exista |
+
+---
+
+## 15. Pruebas unitarias
+
+Las pruebas unitarias se implementaron con JUnit 5 y Mockito en cada microservicio.
+
+Para ejecutar los tests de un microservicio específico:
+
+```bash
+cd usuarios
+mvn test
+```
+
+Para ejecutar todos los tests desde la raíz del proyecto padre:
 
 ```bash
 mvn test
 ```
 
-Compilar sin ejecutar pruebas:
+---
+
+## 16. Comandos útiles
 
 ```bash
-mvn clean package -DskipTests
+# Compilar todo el proyecto (sin tests)
+mvn clean install -DskipTests
+
+# Ejecutar un microservicio desde terminal
+cd usuarios
+mvn spring-boot:run
+
+# Compilar solo un módulo
+mvn clean install -pl usuarios -DskipTests
+
+# Compilar un módulo y sus dependencias
+mvn clean install -pl usuarios -am -DskipTests
+
+# Ejecutar tests de un módulo
+mvn test -pl usuarios
 ```
 
 ---
 
-# Script de Arranque
+## 17. Estado actual del proyecto
 
-Para facilitar la ejecución del sistema se incluye el archivo:
-
-```bash
-arrancar-nativo.bat
-```
-
-Este script permite:
-
-1. Iniciar Eureka Server.
-2. Iniciar los microservicios.
-3. Iniciar API Gateway.
-4. Reducir el tiempo de configuración manual.
-5. Levantar la solución completa mediante un único comando.
-
----
-
-# Verificación en Eureka
-
-Una vez levantado el sistema, acceder a:
-
-```text
-http://localhost:8761
-```
-
-Deben visualizarse registrados los siguientes servicios:
-
-* API-GATEWAY
-* MS-USUARIOS
-* MS-MASCOTAS
-* MS-REFUGIOS
-* MS-SOLICITUD
-* MS-BLACKLIST
-* MS-FICHAVET
-* MS-NOTIFICACIONES
-* MS-SEGUIMIENTO
-* MS-DENUNCIAS
-* MS-SEGURIDAD
-
-Todos los servicios deben encontrarse en estado **UP**.
-
----
-
-# Evidencia Recomendada
-
-Para facilitar la evaluación del proyecto se recomienda adjuntar capturas de:
-
-* Registro de servicios en Eureka.
-* Documentación Swagger.
-* Pruebas realizadas con Postman.
-* Ejecución de microservicios.
-* Bases de datos creadas automáticamente.
-
----
-
-# Video de Demostración
-
-Enlace del video:
-
-```text
-[Agregar enlace del video]
-```
-
-El video muestra:
-
-1. Inicio de MySQL.
-2. Ejecución de arrancar-nativo.bat.
-3. Registro de servicios en Eureka.
-4. Uso de Swagger.
-5. Pruebas de endpoints mediante Postman.
-6. Comunicación entre microservicios.
-7. Validación de reglas de negocio.
-
----
-
-# Subtítulos
-
-El video incorpora subtítulos explicativos para facilitar la comprensión de:
-
-* Arquitectura basada en microservicios.
-* Registro y descubrimiento mediante Eureka.
-* Enrutamiento mediante API Gateway.
-* Comunicación entre servicios con OpenFeign.
-* Persistencia de datos en MySQL.
-* Validaciones y reglas de negocio implementadas.
-
----
-
-# Repositorio
-
-Repositorio GitHub del proyecto:
-
-```text
-[Agregar enlace del repositorio]
-```
-
----
-
-# Integrantes
-
-* Alan Ojeda 1
-* Nayeli 2
-* Javier Molina 3
-
----
+| Elemento | Estado |
+| --- | --- |
+| Proyecto padre Maven | ✅ Implementado |
+| Bases de datos MySQL | ✅ Implementadas |
+| Eureka Server | ✅ Implementado |
+| API Gateway | ✅ Implementado |
+| `ms-usuarios` | ✅ Implementado |
+| `ms-mascotas` | ✅ Implementado |
+| `ms-refugios` | ✅ Implementado |
+| `ms-solicitud` | ✅ Implementado |
+| `ms-fichavet` | ✅ Implementado |
+| `ms-notificaciones` | ✅ Implementado |
+| `ms-seguimiento` | ✅ Implementado |
+| `ms-blacklist` | ✅ Implementado |
+| `ms-denuncias` | ✅ Implementado |
+| `seguridad` (JWT) | ✅ Implementado |
+| Swagger por microservicio | ✅ Implementado |
+| Feign Client | ✅ Implementado |
+| Manejo de errores | ✅ Implementado |
+| Pruebas unitarias | ✅ Implementadas |
+| Script arrancar-nativo.bat | ✅ Implementado |
+| Docker Compose | ⏳ Para Examen Transversal |
