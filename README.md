@@ -21,9 +21,9 @@ Enlace al video: *(colocar aquí el enlace de Google Drive, YouTube u otra plata
 
 ---
 
-##  Subtítulos o transcripción del video
+## Subtítulos o transcripción del video
 
-*(Pegar aquí la transcripción del video o indicar el archivo donde se encuentra, ej: `subtitulos-video.txt`)*
+Archivo de subtítulos: [Ver transcripción](https://drive.google.com/file/d/1elILJv2WJv75S71FNTIn3nv3faBdKr1N/view?usp=sharing)
 
 ---
 
