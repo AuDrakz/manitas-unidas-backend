@@ -171,16 +171,9 @@ public class MascotaController {
     }
 
     @Operation(summary = "Obtener estado (interno Feign)")
-    @GetMapping("/{id}/estado")
-    public ResponseEntity<ApiResponse<String>> obtenerEstado(
-            @PathVariable Long id) {
-
-        return ResponseEntity.ok(
-                new ApiResponse<>(
-                        200,
-                        "Estado obtenido correctamente",
-                        mascotaService.obtenerEstado(id)
-                )
-        );
-    }
+        @GetMapping("/{id}/estado")
+        public ResponseEntity<String> obtenerEstado(@PathVariable Long id) {
+        log.info("Consultando estado de mascota ID={}", id);
+        return ResponseEntity.ok(mascotaService.obtenerEstado(id));
+        }
 }

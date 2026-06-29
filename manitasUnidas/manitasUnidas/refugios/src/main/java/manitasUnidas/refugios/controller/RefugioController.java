@@ -106,4 +106,16 @@ public class RefugioController {
         refugioServ.eliminarRefugio(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/{id}/exists")
+    @Operation(summary = "Verificar existencia")
+    public ResponseEntity<Boolean> verificarExistencia(@PathVariable Long id) {
+        log.info("Verificando existencia de refugio ID={}", id);
+        try {
+            refugioServ.buscarPorId(id);
+            return ResponseEntity.ok(true);
+        } catch (Exception e) {
+            return ResponseEntity.ok(false);
+        }
+    }
 }

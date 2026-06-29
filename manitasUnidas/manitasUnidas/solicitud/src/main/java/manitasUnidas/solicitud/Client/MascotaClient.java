@@ -8,6 +8,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 public interface MascotaClient {
 
     // Obtiene el estado actual de la mascota (Disponible, Adoptado, En tratamiento)
-    @GetMapping("/api/mascotas/estado/{id}")
+    @GetMapping("/api/mascotas/{id}/estado")
     String obtenerEstado(@PathVariable("id") Long id);
 }
