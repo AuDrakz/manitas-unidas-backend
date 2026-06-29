@@ -43,6 +43,14 @@ El flujo principal es:
 
 ---
 
+## Equipo de desarrollo
+
+| Integrante | Rol en el proyecto |
+| --- | --- |
+| Alan Ojeda | Controladores REST, servicios de negocio, testing unitario y colecciones Postman |
+| Nayeli Leiva | Database-per-Service, OpenFeign y documentación Swagger/OpenAPI |
+| Javier Molina | Arquitectura multimódulo, empaquetado de JARs y script de arranque nativo |
+
 ## 2. Arquitectura general
 
 ```text
