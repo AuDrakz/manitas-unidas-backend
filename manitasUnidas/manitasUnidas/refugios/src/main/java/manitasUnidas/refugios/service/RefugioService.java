@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
  * @version 1.0
  */
 @Service
+@Slf4j
 public class RefugioService {
 
     // Logger manual explícito para el servicio
