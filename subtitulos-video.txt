@@ -1,0 +1,98 @@
+TRANSCRIPCIÓN / SUBTÍTULOS — VIDEO DEFENSA TÉCNICA
+Sistema Manitas Unidas | Evaluación Parcial 3
+
+========================================================
+JAVIER MOLINA
+========================================================
+
+"Estimado profesor, junto a mis compañeros Alan Ojeda y Nayeli Leiva, daremos inicio a la defensa técnica de nuestra Evaluación Parcial 3 para el sistema centralizado de 'Manitas Unidas'. La problemática organizacional exigía una plataforma de adopción y resguardo animal con alta disponibilidad, tolerancia a fallos y un desacoplamiento crítico. Para resolver esto, diseñamos un ecosistema distribuido basado en Spring Boot y Spring Cloud, compuesto por un Servidor de Descubrimiento, un API Gateway y diez microservicios de negocio independientes. En este video demostraremos de forma fehaciente la puesta en marcha, la arquitectura de persistencia, pruebas unitarias y flujos de negocio integrados."
+
+"Como se observa en nuestro entorno de desarrollo, implementamos una arquitectura Maven Multi-Módulo formal. Contamos con un proyecto 'Parent' o padre en la raíz, cuyo archivo pom.xml centraliza la gestión de dependencias y las versiones globales del framework. Desde este elemento heredan de forma jerárquica todos nuestros componentes individuales: desde la infraestructura de red hasta cada lógica de negocio. Esto garantiza una mantenibilidad de código óptima y aislamiento total entre módulos."
+
+"Cumpliendo estrictamente con las buenas prácticas de diseño y la 'Regla de Oro' de la pauta, nuestro repositorio de GitHub está libre de basura binaria y carpetas target/. Toda nuestra distribución pesada fue empaquetada externamente. Aquí en local, les muestro la carpeta apps/, la cual contiene los doce artefactos empaquetados en formato .jar listos para producción, logrando un despliegue inmediato e independiente."
+
+"Para automatizar la puesta en marcha sin depender de contenedores en esta fase, programamos un script por lotes llamado arrancar-nativo.bat. Este script inyecta la variable de entorno para forzar la compatibilidad con Java 21 y controla estrictamente el orden cronológico requerido por la arquitectura: en la Fase 1 levanta de forma aislada el Servidor de Discovery; el comando timeout genera una pausa de sincronización de 20 segundos para estabilizar la red, dando paso en la Fase 2 al núcleo de microservicios de negocio en paralelo, y finaliza en la Fase 3 encendiendo el API Gateway."
+
+"Al ingresar al panel de administración de Eureka Server en el puerto 8761, podemos auditar el estado del clúster. Como se evidencia en pantalla, el mecanismo de Service Registry ha funcionado con éxito: los diez microservicios de negocio, junto con el enrutador, han enviado sus respectivos 'heartbeats' o latidos, quedando registrados dinámicamente con el estado 'UP'. Esto elimina la necesidad de cablear IPs fijas entre componentes."
+
+"Finalmente, toda solicitud externa hacia el ecosistema es interceptada por nuestro API Gateway en el puerto 8090. Este actúa como un proxy reverso y unificador de entrada, encargándose de evaluar los patrones de la URL y derivar el tráfico al microservicio correspondiente registrado en Eureka. A continuación, doy el pase a mi compañera Nayeli, quien detallará la estrategia de persistencia y la documentación de las APIs."
+
+========================================================
+NAYELI LEIVA
+========================================================
+
+Escena 1 – Persistencia Aislada
+
+"Gracias, Javier. Profesor, un pilar fundamental en los microservicios es la autonomía de los datos. Rompiendo con el esquema del monolito tradicional, aplicamos el patrón Database-per-Service.
+
+Como se puede observar en nuestro administrador de MySQL, cada microservicio gestiona su propio esquema de base de datos relacional de forma aislada. El servicio de Usuarios no puede escribir ni consultar directamente la base de datos de Mascotas o Denuncias.
+
+Esta separación permite que cada servicio sea responsable únicamente de su información, evitando dependencias innecesarias entre módulos. Además, si un microservicio requiere modificaciones en su modelo de datos, estas pueden realizarse sin afectar al resto del sistema.
+
+Esta estrategia reduce el acoplamiento a nivel de almacenamiento, mejora el mantenimiento del proyecto y permite escalar las bases de datos de forma independiente según la demanda de cada servicio.
+_____________________________________________________________________________________________
+
+Escena 2 – Responsabilidades de los Microservicios
+
+Para cubrir las reglas de negocio de Manitas Unidas, los 10 servicios se dividen responsabilidades claras: 
+Usuarios gestiona el ciclo de vida de adoptantes y voluntarios
+Mascotas controla el estado de los animales 
+Refugios mapea los centros físicos 
+Solicitudes procesa las adopciones 
+BlackList restringe a usuarios con antecedentes de maltrato 
+FichaVet almacena historiales médicos o veterinarios
+Notificaciones despacha alertas automáticas 
+Seguimiento fiscaliza los hogares post-adopción
+Denuncias procesa reportes comunitarios y Seguridad encripta y emite los tokens de acceso."
+_____________________________________________________________________________________________
+
+Escena 3 – Comunicación entre Microservicios con OpenFeign
+
+"Al estar las bases de datos separadas, los servicios deben comunicarse entre sí a través de la red.
+
+Para ello implementamos Spring Cloud OpenFeign de manera declarativa.
+
+Como se observa en esta interfaz de código, cuando el microservicio de Solicitudes necesita validar si un adoptante existe o si está bloqueado en la black list, no realiza una consulta SQL sobre otra base de datos.
+
+En su lugar, utiliza este Client Feign para enviar una solicitud HTTP al microservicio correspondiente. Gracias a la integración con Eureka y el API Gateway, el servicio de destino es localizado automáticamente y la comunicación se realiza de forma transparente para el desarrollador.
+
+Este mecanismo mantiene el desacoplamiento entre los microservicios y favorece una arquitectura distribuida más limpia y fácil de mantener."
+_____________________________________________________________________________________________
+
+
+Escena 4 – Documentación de la API con Swagger
+
+"Para asegurar que nuestra API sea profesional, reutilizable y sencilla de consumir por otros desarrolladores, documentamos cada endpoint utilizando OpenAPI 3 y Swagger UI.
+
+Como se evidencia en el controlador mostrado en pantalla, utilizamos anotaciones como *@Operation*, *@ApiResponse* y *@Tag*, las cuales describen la finalidad de cada recurso, los parámetros esperados y las posibles respuestas del sistema.
+
+Esto permite que cualquier desarrollador pueda conocer el funcionamiento de la API sin necesidad de revisar directamente el código fuente.
+
+Además, Swagger facilita la realización de pruebas durante el desarrollo, ya que permite ejecutar los endpoints desde la propia interfaz web y verificar las respuestas obtenidas.
+
+Entre los códigos de respuesta documentados encontramos **200 OK**, **201 Created**, además de respuestas de error como **400 Bad Request** y **404 Not Found**, dependiendo del resultado de la operación solicitada.
+
+Como parte, trabajé en la estandarización de la documentación Swagger y en la actualización de configuraciones para mantener una estructura uniforme entre los microservicios.
+
+Con esto concluye mi participación. Le cedo la palabra a Alan para presentar las pruebas funcionales y la auditoria del testing."
+========================================================
+ALAN OJEDA
+========================================================
+
+"Gracias, Nayeli. Procederemos con la validación funcional de nuestro ecosistema utilizando Postman. Es crítico destacar que todas nuestras peticiones están apuntando directamente al puerto 8090 de nuestro API Gateway, demostrando que el enrutamiento dinámico está operativo."
+
+"Primero, ejecutamos el flujo base mandando un payload JSON para registrar un nuevo adoptante en el sistema. Vemos que retorna un código 201 de creación exitosa. Acto seguido, disparamos el alta de un nuevo Refugio físico de animales, persistiendo el registro de manera aislada en su correspondiente esquema de base de datos."
+
+"Ahora probaremos una regla de negocio compleja. Al intentar registrar una Mascota, el sistema viaja por Feign para validar que el refugio asignado sea real. El flujo pasa exitosamente. Sin embargo, si intentamos generar una Solicitud de Adopción asociando a un adoptante que previamente registramos en el microservicio de BlackList por malas prácticas, el sistema intercepta la transacción, ejecuta la validación entre servicios en tiempo real y deniega la adopción emitiendo una excepción controlada. Esto demuestra que nuestras fronteras de negocio protegen la integridad de los datos."
+
+"Para certificar la estabilidad de la lógica de negocio antes de generar los artefactos de distribución, implementamos una robusta suite de pruebas unitarias utilizando JUnit 5 y aislamiento de dependencias mediante Mockito. Como pueden observar en la consola interactiva en este momento, acabamos de ejecutar la fase de 'test' de Maven en el proyecto raíz. El compilador procesa todos los submódulos, ejecutando con éxito el cien por ciento de las pruebas implementadas sin omitir ninguna, arrojando un rotundo 'BUILD SUCCESS'."
+
+"Para cerrar nuestra defensa, estableceremos nuestros aportes técnicos individuales al proyecto semestral:
+
+En mi caso, Alan Ojeda, asumí la responsabilidad de codificar los controladores REST y servicios del núcleo del negocio, la creación de las colecciones de Postman para pruebas de integración y la escritura de la suite de testing unitario con JUnit y Mockito.
+
+Mi compañera Nayeli, se enfocó en el diseño conceptual y físico del esquema Database-per-Service, la implementación de la comunicación síncrona mediante Spring Cloud OpenFeign y la documentación exhaustiva de las APIs utilizando las anotaciones de OpenAPI 3 para Swagger.
+
+Nuestro compañero Javier Molina, lideró el diseño de la arquitectura de distribución nativa multimódulo, resolviendo los conflictos críticos de versiones de dependencias entre Spring Boot 3 y Spring Cloud, estructurando el empaquetado de los doce archivos JAR y programando el script por lotes secuencial cronometrado para garantizar un despliegue autónomo y limpio."
+
+"Con esto, profesor, damos por concluida la presentación. El sistema de 'Manitas Unidas' cumple cabalmente con cada criterio de la rúbrica de evaluación: arquitectura multi-módulo escalable, persistencia desacoplada, service discovery, gateway centralizado, documentación viva, cobertura de pruebas y un despliegue automatizado llave en mano. Toda la evidencia y el código fuente quedan congelados en nuestro repositorio de GitHub. Muchas gracias por su atención."
