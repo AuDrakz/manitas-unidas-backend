@@ -17,7 +17,7 @@ Utilice los siguientes enlaces externos para descargar las versiones listas para
 
 ##  Video explicativo de la defensa
 
-Enlace al video: *(colocar aquí el enlace de Google Drive, YouTube u otra plataforma)*
+Enlace al video: [Ver video](https://drive.google.com/file/d/1Z7W74C-h9jSd4KZ0D1sq5TG5Knql6y_Z/view?usp=sharing)
 
 ---
 
