@@ -1,0 +1,222 @@
+version: '3.8'
+
+# ============================================================
+# Docker Compose BASE - Manitas Unidas
+# Avance para Examen Transversal (no requerido para EP3)
+# ============================================================
+
+services:
+
+  # --- Base de datos ---
+  mysql:
+    image: mysql:8.0
+    container_name: manitas-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ""
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+    ports:
+      - "3307:3306"
+    volumes:
+      - manitas-mysql-data:/var/lib/mysql
+    networks:
+      - manitas-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # --- Eureka Server ---
+  eureka:
+    build: ./eureka
+    container_name: manitas-eureka
+    ports:
+      - "8761:8761"
+    networks:
+      - manitas-network
+
+  # --- Microservicios de negocio ---
+  usuarios:
+    build: ./usuarios
+    container_name: manitas-usuarios
+    ports:
+      - "8081:8081"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka:
+        condition: service_started
+    environment:
+      EUREKA_URI: http://eureka:8761/eureka
+      DB_HOST: mysql
+    networks:
+      - manitas-network
+
+  mascotas:
+    build: ./mascotas
+    container_name: manitas-mascotas
+    ports:
+      - "8082:8082"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka:
+        condition: service_started
+    environment:
+      EUREKA_URI: http://eureka:8761/eureka
+      DB_HOST: mysql
+    networks:
+      - manitas-network
+
+  refugios:
+    build: ./refugios
+    container_name: manitas-refugios
+    ports:
+      - "8083:8083"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka:
+        condition: service_started
+    environment:
+      EUREKA_URI: http://eureka:8761/eureka
+      DB_HOST: mysql
+    networks:
+      - manitas-network
+
+  notificaciones:
+    build: ./notificaciones
+    container_name: manitas-notificaciones
+    ports:
+      - "8084:8084"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka:
+        condition: service_started
+    environment:
+      EUREKA_URI: http://eureka:8761/eureka
+      DB_HOST: mysql
+    networks:
+      - manitas-network
+
+  solicitud:
+    build: ./solicitud
+    container_name: manitas-solicitud
+    ports:
+      - "8085:8085"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka:
+        condition: service_started
+    environment:
+      EUREKA_URI: http://eureka:8761/eureka
+      DB_HOST: mysql
+    networks:
+      - manitas-network
+
+  fichavet:
+    build: ./fichaVet
+    container_name: manitas-fichavet
+    ports:
+      - "8086:8086"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka:
+        condition: service_started
+    environment:
+      EUREKA_URI: http://eureka:8761/eureka
+      DB_HOST: mysql
+    networks:
+      - manitas-network
+
+  seguimiento:
+    build: ./seguimiento
+    container_name: manitas-seguimiento
+    ports:
+      - "8087:8087"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka:
+        condition: service_started
+    environment:
+      EUREKA_URI: http://eureka:8761/eureka
+      DB_HOST: mysql
+    networks:
+      - manitas-network
+
+  denuncias:
+    build: ./denuncias
+    container_name: manitas-denuncias
+    ports:
+      - "8088:8088"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka:
+        condition: service_started
+    environment:
+      EUREKA_URI: http://eureka:8761/eureka
+      DB_HOST: mysql
+    networks:
+      - manitas-network
+
+  blacklist:
+    build: ./blackList
+    container_name: manitas-blacklist
+    ports:
+      - "8089:8089"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka:
+        condition: service_started
+    environment:
+      EUREKA_URI: http://eureka:8761/eureka
+      DB_HOST: mysql
+    networks:
+      - manitas-network
+
+  seguridad:
+    build: ./seguridad
+    container_name: manitas-seguridad
+    ports:
+      - "8091:8091"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka:
+        condition: service_started
+    environment:
+      EUREKA_URI: http://eureka:8761/eureka
+      DB_HOST: mysql
+    networks:
+      - manitas-network
+
+  # --- API Gateway (se levanta al final) ---
+  apigateway:
+    build: ./apiGateway
+    container_name: manitas-apigateway
+    ports:
+      - "8090:8090"
+    depends_on:
+      - eureka
+      - usuarios
+      - mascotas
+      - refugios
+      - solicitud
+    environment:
+      EUREKA_URI: http://eureka:8761/eureka
+    networks:
+      - manitas-network
+
+networks:
+  manitas-network:
+    driver: bridge
+
+volumes:
+  manitas-mysql-data:
+    driver: local
