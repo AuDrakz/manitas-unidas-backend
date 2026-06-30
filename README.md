@@ -10,8 +10,9 @@ Utilice los siguientes enlaces externos para descargar las versiones listas para
 
 | Componente | Descripción | Enlace |
 | :--- | :--- | :--- |
-| **📦 Versión Sin Docker** *(Arranque Nativo)* | Archivo `.zip` que contiene los `.jar` compilados y el script `arrancar-nativo.bat` ordenado por fases. | [Descargar ZIP Nativo aquí](https://drive.google.com/file/d/1OfJcR_y7Ga49PkB233yRWgfjZswnHOVi/view?usp=sharing) |
-| **🎥 Video de Defensa Técnica** *(Evaluación Individual)*. | [Ver Video Explicativo aquí](https://drive.google.com/file/d/1Z7W74C-h9jSd4KZ0D1sq5TG5Knql6y_Z/view?usp=sharing) |
+| **📦 Versión Sin Docker** *(Arranque Nativo)* | Archivo `.zip` con los `.jar` compilados y el script `arrancar-nativo.bat` ordenado por fases. | [Descargar ZIP Nativo aquí](https://drive.google.com/file/d/1OfJcR_y7Ga49PkB233yRWgfjZswnHOVi/view?usp=sharing) |
+| **🐳 Versión Con Docker** *(Avance Examen Transversal)* | Archivo `docker-compose.yml` base disponible en el repositorio. Despliegue completo se entregará en el Examen Transversal. | *(Configuración base en el repositorio — ver `docker-compose.yml`)* |
+| **🎥 Video de Defensa Técnica** *(Evaluación Individual — 15:08 min)* | Video explicativo donde se evidencia el funcionamiento, testing y aporte técnico individual. | [Ver Video Explicativo aquí](https://drive.google.com/file/d/1Z7W74C-h9jSd4KZ0D1sq5TG5Knql6y_Z/view?usp=sharing) |
 
 ---
 
@@ -141,7 +142,6 @@ manitas-unidas-backend/
 └── manitasUnidas/
     └── manitasUnidas/
         ├── pom.xml                  ← Proyecto padre Maven
-        ├── arrancar-nativo.bat      ← Script de arranque nativo
         ├── eureka/
         ├── apiGateway/
         ├── usuarios/
@@ -392,5 +392,4 @@ mvn test -pl usuarios
 | Feign Client | ✅ Implementado |
 | Manejo de errores | ✅ Implementado |
 | Pruebas unitarias | ✅ Implementadas |
-| Script arrancar-nativo.bat | ✅ Implementado |
 | Docker Compose | ⏳ Para Examen Transversal |
